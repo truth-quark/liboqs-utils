@@ -1,3 +1,5 @@
+import string
+
 CRYPTO_SECRETKEYBYTES = 'CRYPTO_SECRETKEYBYTES'
 CRYPTO_PUBLICKEYBYTES = 'CRYPTO_PUBLICKEYBYTES'
 CRYPTO_BYTES = 'CRYPTO_BYTES'
@@ -30,6 +32,7 @@ def parse_api_header(content):
     return result
 
 
+# TODO: move to template file
 API_HEADER_SEGMENT_TEMPLATE = """#ifdef OQS_ENABLE_KEM_{CRYPTO_ALGNAME}
 
 #define OQS_KEM_{CRYPTO_ALGNAME}_length_public_key {CRYPTO_PUBLICKEYBYTES}
@@ -47,5 +50,18 @@ extern OQS_STATUS OQS_KEM_{CRYPTO_ALGNAME}_decaps(uint8_t *shared_secret, const 
 """
 
 
+def has_whitespace(s):
+    """Returns True if string contains whitespace."""
+    for c in string.whitespace:
+        if c in s:
+            return True
+    return False
+
+
 def kem_header_segment(params):
+    """Returns algorithm header segment text for specific algorithm strength."""
+    if has_whitespace(params[CRYPTO_ALGNAME]):
+        sanitised = params[CRYPTO_ALGNAME].replace(' ', '_')
+        params[CRYPTO_ALGNAME] = sanitised
+
     return API_HEADER_SEGMENT_TEMPLATE.format_map(params)
