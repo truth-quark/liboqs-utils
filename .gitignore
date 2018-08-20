@@ -1,0 +1,6 @@
+.idea/
+*.pyc
+*.pyx
+*.geany
+.pytest_cache/
+*~
