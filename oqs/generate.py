@@ -49,6 +49,15 @@ extern OQS_STATUS OQS_KEM_{CRYPTO_ALGNAME}_decaps(uint8_t *shared_secret, const 
 #endif
 """
 
+API_HEADER_TEMPLATE = """#ifndef __OQS_KEM_{BASENAME}_H
+#define __OQS_KEM_{BASENAME}_H
+
+#include <oqs/oqs.h>
+
+{segments}
+#endif /* __OQS_KEM_{BASENAME}_H */
+"""
+
 
 def has_whitespace(s):
     """Returns True if string contains whitespace."""
@@ -58,10 +67,22 @@ def has_whitespace(s):
     return False
 
 
+def sanitise_name(s):
+    return s.replace(' ', '_')
+
+
 def kem_header_segment(params):
     """Returns algorithm header segment text for specific algorithm strength."""
     if has_whitespace(params[CRYPTO_ALGNAME]):
-        sanitised = params[CRYPTO_ALGNAME].replace(' ', '_')
+        sanitised = sanitise_name(params[CRYPTO_ALGNAME])
         params[CRYPTO_ALGNAME] = sanitised
 
     return API_HEADER_SEGMENT_TEMPLATE.format_map(params)
+
+
+def kem_header_file(basename, params):
+    tmp = dict(basename=basename,
+               BASENAME=sanitise_name(str.upper(basename)))
+
+    tmp['segments'] = '\n'.join(kem_header_segment(p) for p in params)
+    return API_HEADER_TEMPLATE.format_map(tmp)
