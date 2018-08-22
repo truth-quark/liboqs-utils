@@ -162,6 +162,24 @@ OQS_KEM *OQS_KEM_Fake_Alg_2_new() {
 """
 
 
+EXP_KEM_H = """/** Algorithm identifier for default KEM algorithm. */
+#define OQS_KEM_alg_default "DEFAULT"
+/** Algorithm identifier for Lima-sp-2062 CCA KEM. */
+#define OQS_KEM_alg_lima_sp_2062_cca_kem "Lima-sp-2062-CCA-KEM"
+/** Algorithm identifier for Fake_Alg_1. */
+#define OQS_KEM_alg_Fake_Alg_1 "Fake_Alg_1"
+/** Algorithm identifier for Fake_Alg_2. */
+#define OQS_KEM_alg_Fake_Alg_2 "Fake_Alg_2"
+// EDIT-WHEN-ADDING-KEM
+/** Number of algorithm identifiers above. */
+#define OQS_KEM_algs_length 4
+
+#include <oqs/kem_lima.h>
+#include <oqs/kem_fake.h>
+// EDIT-WHEN-ADDING-KEM
+"""
+
+
 def test_parse_api_header():
     res = generate.parse_api_header(FAKE_API_HEADER)
     assert len(res) == 5
@@ -206,3 +224,20 @@ def test_kem_src_file():
     params1 = get_fake_api_params(name='Fake Alg 2')
     src = generate.kem_src_file('Fake', [params0, params1])
     assert src in EXP_KEM_SRC
+
+
+def test_kem_header_add_new_algorithm():
+    cont = '/** Algorithm identifier for default KEM algorithm. */\n' \
+           '#define OQS_KEM_alg_default "DEFAULT"\n' \
+           '/** Algorithm identifier for Lima-sp-2062 CCA KEM. */\n' \
+           '#define OQS_KEM_alg_lima_sp_2062_cca_kem "Lima-sp-2062-CCA-KEM"\n' \
+           '// EDIT-WHEN-ADDING-KEM\n' \
+           '/** Number of algorithm identifiers above. */\n' \
+           '#define OQS_KEM_algs_length 2\n\n' \
+           '#include <oqs/kem_lima.h>\n' \
+           '// EDIT-WHEN-ADDING-KEM\n'
+
+    params0 = get_fake_api_params(name='Fake Alg 1')
+    params1 = get_fake_api_params(name='Fake Alg 2')
+    result = generate.kem_header_add_new_algorithm('fake', cont, [params0, params1])
+    assert result == EXP_KEM_H

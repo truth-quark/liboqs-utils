@@ -59,3 +59,7 @@ API_SRC_TEMPLATE = """#include <stdlib.h>
 #include <oqs/kem_{basename}.h>
 
 {segments}"""
+
+
+OQS_ALGORITHM_TEMPLATE = '''/** Algorithm identifier for {0}. */
+#define OQS_KEM_alg_{0} "{0}"'''

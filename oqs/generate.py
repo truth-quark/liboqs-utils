@@ -1,5 +1,7 @@
 import os
 import string
+import textwrap
+
 from oqs import template
 
 CRYPTO_SECRETKEYBYTES = 'CRYPTO_SECRETKEYBYTES'
@@ -11,7 +13,7 @@ CRYPTO_ALGNAME = 'CRYPTO_ALGNAME'
 KEYWORDS = [CRYPTO_SECRETKEYBYTES, CRYPTO_PUBLICKEYBYTES,
             CRYPTO_BYTES, CRYPTO_CIPHERTEXTBYTES, CRYPTO_ALGNAME]
 
-EDIT = 'EDIT-WHEN-ADDING-KEM'
+EDIT = '// EDIT-WHEN-ADDING-KEM\n'
 
 
 # TODO: handle varying whitespace between defines and value
@@ -85,6 +87,39 @@ def kem_header_file(basename, params):
     return template.API_HEADER_TEMPLATE.format_map(mapping)
 
 
+def kem_header_add_new_algorithm(basename, content, params):
+    # edit kem.h for content
+
+    # add algorithm ID strings
+    if content.count(EDIT) == 2:
+        for p in params:
+            safe = sanitise_name(p[CRYPTO_ALGNAME])
+            tmp = template.OQS_ALGORITHM_TEMPLATE.format(safe)
+
+            if tmp not in content:
+                tmp_edit = tmp + '\n' + EDIT
+                content = content.replace(EDIT, tmp_edit, 1)
+    else:
+        raise KemException('Too many/few "// EDIT-WHEN-ADDING-KEM" strings')
+
+    # update count of algorithms
+    lines = content.split('\n')
+    count = len([e for e in lines if e.startswith('#define OQS_KEM_alg_')])
+    blah = [e for e in lines if e.startswith('#define OQS_KEM_algs_length')]
+    assert len(blah) == 1
+    i = lines.index(blah[0])
+    lines[i] = '#define OQS_KEM_algs_length {}'.format(count)
+
+    # include new header files at bottom
+    inc = '#include <oqs/kem_{}.h>'.format(basename)
+    if inc not in lines:
+        j = lines.index(EDIT.strip(), i)
+        lines.insert(j, inc)
+
+    content = '\n'.join(lines)
+    return content
+
+
 def kem_src_segment(params):
     """Returns C source segment for an algorithm """
     # FIXME: changes params
@@ -132,9 +167,16 @@ def oqs_wrapper(basename):
         src = kem_src_file(basename, params.values())
         f.write(src)
 
-    # TODO: edit kem.c for content
     # TODO: edit kem.h for content
-    # FIXME: needs to work with all params
+    kem_h_path = 'src/kem/kem.h'
+    content = open(kem_h_path).read()
+    new_content = kem_header_add_new_algorithm(basename, content, params.values())
+
+    if new_content:
+        with open(kem_h_path, 'w') as f:
+            f.write(new_content)
+
+    # TODO: edit kem.c for content
 
 
 class KemException(Exception):
