@@ -1,6 +1,5 @@
 import os
 import string
-import textwrap
 
 from oqs import template
 
@@ -94,7 +93,7 @@ def kem_header_add_new_algorithm(basename, content, params):
     if content.count(EDIT) == 2:
         for p in params:
             safe = sanitise_name(p[CRYPTO_ALGNAME])
-            tmp = template.OQS_ALGORITHM_TEMPLATE.format(safe)
+            tmp = template.OQS_ALGORITHM_H_TEMPLATE.format(safe)
 
             if tmp not in content:
                 tmp_edit = tmp + '\n' + EDIT
@@ -141,6 +140,38 @@ def kem_src_file(basename, params):
     return template.API_SRC_TEMPLATE.format_map(mapping)
 
 
+def kem_src_add_new_algorithm(content, params):
+    # TODO: fix multiple name cleanups
+    lines = content.split('\n')
+    tmp = [e for e in lines if 'OQS_KEM_alg_default' in e]
+    assert len(tmp) == 2
+    ids = tmp[0]
+
+    # TODO: add string to list
+    i = lines.index(ids)
+    elems = ['OQS_KEM_alg_' + sanitise_name(p[CRYPTO_ALGNAME]) for p in params]
+    algs = ', '.join(elems)
+
+    if algs not in content:  # check content to make str find cleaner
+        lines[i] += '\n\t    {},'.format(algs)
+
+    # TODO: add if block
+    tmp = [e for e in lines if EDIT.strip() in e]
+    assert len(tmp) == 2
+    j = lines.index(tmp[1])
+
+    for p in params:
+        safe = sanitise_name(p[CRYPTO_ALGNAME])
+        tmp = template.OQS_ALGORITHM_C_TEMPLATE.format(safe)
+
+        if tmp not in content:  # check content to make str find cleaner
+            lines.insert(j, tmp)
+            j += 1  # maintain order of newly inserted blocks
+
+    updated = '\n'.join(lines)
+    return updated
+
+
 def oqs_wrapper(basename):
     """Generate liboqs wrapper files."""
     # TODO: assume upstream dir is created
@@ -177,6 +208,14 @@ def oqs_wrapper(basename):
             f.write(new_content)
 
     # TODO: edit kem.c for content
+    kem_c_path = 'src/kem/kem.c'
+    content = open(kem_c_path).read()
+
+    new_content = kem_src_add_new_algorithm(content, params.values())
+
+    if new_content:
+        with open(kem_c_path, 'w') as f:
+            f.write(new_content)
 
 
 class KemException(Exception):

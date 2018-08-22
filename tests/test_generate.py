@@ -241,3 +241,87 @@ def test_kem_header_add_new_algorithm():
     params1 = get_fake_api_params(name='Fake Alg 2')
     result = generate.kem_header_add_new_algorithm('fake', cont, [params0, params1])
     assert result == EXP_KEM_H
+
+
+ORIG_KEM_C_SEGMENT = '''char *OQS_KEM_alg_identifier(size_t i) {
+\t// EDIT-WHEN-ADDING-KEM
+\tchar *a[OQS_KEM_algs_length] = {
+\t    OQS_KEM_alg_default,
+\t    OQS_KEM_alg_frodokem_640_aes, OQS_KEM_alg_frodokem_976_aes};
+\tif (i >= OQS_KEM_algs_length) {
+\t\treturn NULL;
+\t} else {
+\t\treturn a[i];
+\t}
+}
+
+OQS_KEM *OQS_KEM_new(const char *method_name) {
+\tif (0 == strcasecmp(method_name, OQS_KEM_alg_default)) {
+\t\treturn OQS_KEM_new(OQS_KEM_DEFAULT);
+\t} else if (0 == strcasecmp(method_name, OQS_KEM_alg_lima_sp_2062_cca_kem)) {
+#ifdef OQS_ENABLE_KEM_lima_sp_2062_cca_kem
+\t\treturn OQS_KEM_lima_sp_2062_cca_kem_new();
+#else
+\t\treturn NULL;
+#endif
+\t\t// EDIT-WHEN-ADDING-KEM
+\t} else {
+\t\treturn NULL;
+\t}
+}
+'''
+
+EXP_KEM_C_SEGMENT = '''char *OQS_KEM_alg_identifier(size_t i) {
+\t// EDIT-WHEN-ADDING-KEM
+\tchar *a[OQS_KEM_algs_length] = {
+\t    OQS_KEM_alg_default,
+\t    OQS_KEM_alg_Fake_Alg_1, OQS_KEM_alg_Fake_Alg_2,
+\t    OQS_KEM_alg_frodokem_640_aes, OQS_KEM_alg_frodokem_976_aes};
+\tif (i >= OQS_KEM_algs_length) {
+\t\treturn NULL;
+\t} else {
+\t\treturn a[i];
+\t}
+}
+
+OQS_KEM *OQS_KEM_new(const char *method_name) {
+\tif (0 == strcasecmp(method_name, OQS_KEM_alg_default)) {
+\t\treturn OQS_KEM_new(OQS_KEM_DEFAULT);
+\t} else if (0 == strcasecmp(method_name, OQS_KEM_alg_lima_sp_2062_cca_kem)) {
+#ifdef OQS_ENABLE_KEM_lima_sp_2062_cca_kem
+\t\treturn OQS_KEM_lima_sp_2062_cca_kem_new();
+#else
+\t\treturn NULL;
+#endif
+\t} else if (0 == strcasecmp(method_name, OQS_KEM_alg_Fake_Alg_1) {
+#ifdef OQS_ENABLE_KEM_Fake_Alg_1
+\t\treturn OQS_KEM_Fake_Alg_1_new();
+#else
+\t\treturn NULL;
+#endif
+\t} else if (0 == strcasecmp(method_name, OQS_KEM_alg_Fake_Alg_2) {
+#ifdef OQS_ENABLE_KEM_Fake_Alg_2
+\t\treturn OQS_KEM_Fake_Alg_2_new();
+#else
+\t\treturn NULL;
+#endif
+\t\t// EDIT-WHEN-ADDING-KEM
+\t} else {
+\t\treturn NULL;
+\t}
+}
+'''
+
+
+def test_kem_src_add_new_algorithm():
+    params0 = get_fake_api_params(name='Fake Alg 1')
+    params1 = get_fake_api_params(name='Fake Alg 2')
+    result = generate.kem_src_add_new_algorithm(ORIG_KEM_C_SEGMENT, [params0, params1])
+    assert result == EXP_KEM_C_SEGMENT
+
+
+def test_kem_src_add_new_algorithm_already_done():
+    params0 = get_fake_api_params(name='Fake Alg 1')
+    params1 = get_fake_api_params(name='Fake Alg 2')
+    result = generate.kem_src_add_new_algorithm(EXP_KEM_C_SEGMENT, [params0, params1])
+    assert result == EXP_KEM_C_SEGMENT
