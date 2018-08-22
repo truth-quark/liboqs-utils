@@ -1,4 +1,5 @@
 import string
+from oqs import template
 
 CRYPTO_SECRETKEYBYTES = 'CRYPTO_SECRETKEYBYTES'
 CRYPTO_PUBLICKEYBYTES = 'CRYPTO_PUBLICKEYBYTES'
@@ -32,33 +33,6 @@ def parse_api_header(content):
     return result
 
 
-# TODO: move to template file
-API_HEADER_SEGMENT_TEMPLATE = """#ifdef OQS_ENABLE_KEM_{CRYPTO_ALGNAME}
-
-#define OQS_KEM_{CRYPTO_ALGNAME}_length_public_key {CRYPTO_PUBLICKEYBYTES}
-#define OQS_KEM_{CRYPTO_ALGNAME}_length_secret_key {CRYPTO_SECRETKEYBYTES}
-#define OQS_KEM_{CRYPTO_ALGNAME}_length_ciphertext {CRYPTO_CIPHERTEXTBYTES}
-#define OQS_KEM_{CRYPTO_ALGNAME}_length_shared_secret {CRYPTO_BYTES}
-
-OQS_KEM *OQS_KEM_{CRYPTO_ALGNAME}_new();
-
-extern OQS_STATUS OQS_KEM_{CRYPTO_ALGNAME}_keypair(uint8_t *public_key, uint8_t *secret_key);
-extern OQS_STATUS OQS_KEM_{CRYPTO_ALGNAME}_encaps(uint8_t *ciphertext, uint8_t *shared_secret, const uint8_t *public_key);
-extern OQS_STATUS OQS_KEM_{CRYPTO_ALGNAME}_decaps(uint8_t *shared_secret, const unsigned char *ciphertext, const uint8_t *secret_key);
-
-#endif
-"""
-
-API_HEADER_TEMPLATE = """#ifndef __OQS_KEM_{BASENAME}_H
-#define __OQS_KEM_{BASENAME}_H
-
-#include <oqs/oqs.h>
-
-{segments}
-#endif /* __OQS_KEM_{BASENAME}_H */
-"""
-
-
 def has_whitespace(s):
     """Returns True if string contains whitespace."""
     for c in string.whitespace:
@@ -77,12 +51,13 @@ def kem_header_segment(params):
         sanitised = sanitise_name(params[CRYPTO_ALGNAME])
         params[CRYPTO_ALGNAME] = sanitised
 
-    return API_HEADER_SEGMENT_TEMPLATE.format_map(params)
+    return template.API_HEADER_SEGMENT_TEMPLATE.format_map(params)
 
 
 def kem_header_file(basename, params):
-    tmp = dict(basename=basename,
-               BASENAME=sanitise_name(str.upper(basename)))
+    """Returns content of KEM header file for given algorithms."""
+    mapping = dict(basename=basename,
+                   BASENAME=sanitise_name(str.upper(basename)))
 
-    tmp['segments'] = '\n'.join(kem_header_segment(p) for p in params)
-    return API_HEADER_TEMPLATE.format_map(tmp)
+    mapping['segments'] = '\n'.join(kem_header_segment(p) for p in params)
+    return template.API_HEADER_TEMPLATE.format_map(mapping)
