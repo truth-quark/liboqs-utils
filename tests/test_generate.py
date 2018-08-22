@@ -73,6 +73,95 @@ extern OQS_STATUS OQS_KEM_Fake_Alg_2_decaps(uint8_t *shared_secret, const unsign
 """
 
 
+EXP_KEM_SRC_SEGMENT = """#ifdef OQS_ENABLE_KEM_Fake_Alg_1
+
+OQS_KEM *OQS_KEM_Fake_Alg_1_new() {
+
+    OQS_KEM *kem = malloc(sizeof(OQS_KEM));
+    if (kem == NULL) {
+        return NULL;
+    }
+    kem->method_name = OQS_KEM_alg_Fake_Alg_1;
+
+    kem->claimed_nist_level = TODO;
+    kem->ind_cca = TODO;
+
+    kem->length_public_key = OQS_KEM_Fake_Alg_1_length_public_key;
+    kem->length_secret_key = OQS_KEM_Fake_Alg_1_length_secret_key;
+    kem->length_ciphertext = OQS_KEM_Fake_Alg_1_length_ciphertext;
+    kem->length_shared_secret = OQS_KEM_Fake_Alg_1_length_shared_secret;
+
+    kem->keypair = OQS_KEM_Fake_Alg_1_keypair;
+    kem->encaps = OQS_KEM_Fake_Alg_1_encaps;
+    kem->decaps = OQS_KEM_Fake_Alg_1_decaps;
+
+    return kem;
+}
+
+#endif
+"""
+
+
+EXP_KEM_SRC = """#include <stdlib.h>
+
+#include <oqs/kem_fake.h>
+
+#ifdef OQS_ENABLE_KEM_Fake_Alg_1
+
+OQS_KEM *OQS_KEM_Fake_Alg_1_new() {
+
+    OQS_KEM *kem = malloc(sizeof(OQS_KEM));
+    if (kem == NULL) {
+        return NULL;
+    }
+    kem->method_name = OQS_KEM_alg_Fake_Alg_1;
+
+    kem->claimed_nist_level = TODO;
+    kem->ind_cca = TODO;
+
+    kem->length_public_key = OQS_KEM_Fake_Alg_1_length_public_key;
+    kem->length_secret_key = OQS_KEM_Fake_Alg_1_length_secret_key;
+    kem->length_ciphertext = OQS_KEM_Fake_Alg_1_length_ciphertext;
+    kem->length_shared_secret = OQS_KEM_Fake_Alg_1_length_shared_secret;
+
+    kem->keypair = OQS_KEM_Fake_Alg_1_keypair;
+    kem->encaps = OQS_KEM_Fake_Alg_1_encaps;
+    kem->decaps = OQS_KEM_Fake_Alg_1_decaps;
+
+    return kem;
+}
+
+#endif
+
+#ifdef OQS_ENABLE_KEM_Fake_Alg_2
+
+OQS_KEM *OQS_KEM_Fake_Alg_2_new() {
+
+    OQS_KEM *kem = malloc(sizeof(OQS_KEM));
+    if (kem == NULL) {
+        return NULL;
+    }
+    kem->method_name = OQS_KEM_alg_Fake_Alg_2;
+
+    kem->claimed_nist_level = TODO;
+    kem->ind_cca = TODO;
+
+    kem->length_public_key = OQS_KEM_Fake_Alg_2_length_public_key;
+    kem->length_secret_key = OQS_KEM_Fake_Alg_2_length_secret_key;
+    kem->length_ciphertext = OQS_KEM_Fake_Alg_2_length_ciphertext;
+    kem->length_shared_secret = OQS_KEM_Fake_Alg_2_length_shared_secret;
+
+    kem->keypair = OQS_KEM_Fake_Alg_2_keypair;
+    kem->encaps = OQS_KEM_Fake_Alg_2_encaps;
+    kem->decaps = OQS_KEM_Fake_Alg_2_decaps;
+
+    return kem;
+}
+
+#endif
+"""
+
+
 def test_parse_api_header():
     res = generate.parse_api_header(FAKE_API_HEADER)
     assert len(res) == 5
@@ -105,3 +194,15 @@ def test_kem_header_file():
     header = generate.kem_header_file('Fake Alg', [params0, params1])
     assert header in EXP_KEM_HEADER
 
+
+def test_kem_src_segment():
+    params0 = get_fake_api_params(name='Fake Alg 1')
+    src = generate.kem_src_segment(params0)
+    assert src in EXP_KEM_SRC_SEGMENT
+
+
+def test_kem_src_file():
+    params0 = get_fake_api_params(name='Fake Alg 1')
+    params1 = get_fake_api_params(name='Fake Alg 2')
+    src = generate.kem_src_file('Fake', [params0, params1])
+    assert src in EXP_KEM_SRC
