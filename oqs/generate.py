@@ -1,3 +1,4 @@
+import os
 import string
 from oqs import template
 
@@ -9,6 +10,8 @@ CRYPTO_ALGNAME = 'CRYPTO_ALGNAME'
 
 KEYWORDS = [CRYPTO_SECRETKEYBYTES, CRYPTO_PUBLICKEYBYTES,
             CRYPTO_BYTES, CRYPTO_CIPHERTEXTBYTES, CRYPTO_ALGNAME]
+
+EDIT = 'EDIT-WHEN-ADDING-KEM'
 
 
 # TODO: handle varying whitespace between defines and value
@@ -32,6 +35,23 @@ def parse_api_header(content):
                 break
 
     return result
+
+
+def scan_upstream(basename):
+    # TODO: assume script run from project root
+    upstream_dir = 'src/kem/{}/upstream'
+    kem_dirs = []
+
+    # TODO; find api.h files to enable generation of wrapper code
+    for dirpath, _, filenames in os.walk(upstream_dir.format(basename)):
+        if 'api.h' in filenames:
+            kem_dirs.append(dirpath)
+
+    if not kem_dirs:
+        msg = 'api.h not found in subdirs of {}'.format(upstream_dir)
+        raise KemException(msg)
+
+    return kem_dirs
 
 
 def has_whitespace(s):
@@ -84,3 +104,43 @@ def kem_src_file(basename, params):
                    segments='\n'.join(kem_src_segment(p) for p in params))
 
     return template.API_SRC_TEMPLATE.format_map(mapping)
+
+
+def oqs_wrapper(basename):
+    """Generate liboqs wrapper files."""
+    # TODO: assume upstream dir is created
+    # TODO: need a class with path attrs
+
+    kem_dirs = scan_upstream(basename)
+    params = {}
+
+    for kd in kem_dirs:
+        print(kd)
+        path = os.path.join(kd, 'api.h')
+        content = open(path).read()
+        param = parse_api_header(content)
+        params[path] = param
+
+    header_path = 'src/kem/{}/kem_{}.h'.format(basename, basename)
+
+    with open(header_path, 'w') as f:
+        header = kem_header_file(basename, params.values())
+        f.write(header)
+
+    src_path = 'src/kem/{}/kem_{}.c'.format(basename, basename)
+    with open(src_path, 'w') as f:
+        src = kem_src_file(basename, params.values())
+        f.write(src)
+
+    # TODO: edit kem.c for content
+    # TODO: edit kem.h for content
+    # FIXME: needs to work with all params
+
+
+class KemException(Exception):
+    pass
+
+
+if __name__ == '__main__':
+    import sys
+    oqs_wrapper(sys.argv[1])
