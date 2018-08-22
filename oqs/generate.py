@@ -141,31 +141,31 @@ def kem_src_file(basename, params):
 
 
 def kem_src_add_new_algorithm(content, params):
-    # TODO: fix multiple name cleanups
+    """Updates src/kem/kem.c in place for adding new algorithms."""
     lines = content.split('\n')
+    safe_names = [sanitise_name(p[CRYPTO_ALGNAME]) for p in params]
     tmp = [e for e in lines if 'OQS_KEM_alg_default' in e]
     assert len(tmp) == 2
     ids = tmp[0]
 
-    # TODO: add string to list
+    # add algorithm names to identifier list
     i = lines.index(ids)
-    elems = ['OQS_KEM_alg_' + sanitise_name(p[CRYPTO_ALGNAME]) for p in params]
-    algs = ', '.join(elems)
+    algs = ', '.join(['OQS_KEM_alg_' + s for s in safe_names])
 
     if algs not in content:  # check content to make str find cleaner
         lines[i] += '\n\t    {},'.format(algs)
 
-    # TODO: add if block
+    # add new algorithms to bottom of if block
     tmp = [e for e in lines if EDIT.strip() in e]
     assert len(tmp) == 2
-    j = lines.index(tmp[1])
+    if_block = tmp[1]
+    j = lines.index(if_block)
 
-    for p in params:
-        safe = sanitise_name(p[CRYPTO_ALGNAME])
-        tmp = template.OQS_ALGORITHM_C_TEMPLATE.format(safe)
+    for s in safe_names:
+        blk = template.OQS_ALGORITHM_C_TEMPLATE.format(s)
 
-        if tmp not in content:  # check content to make str find cleaner
-            lines.insert(j, tmp)
+        if blk not in content:  # check content to make str find cleaner
+            lines.insert(j, blk)
             j += 1  # maintain order of newly inserted blocks
 
     updated = '\n'.join(lines)
