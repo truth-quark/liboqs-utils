@@ -1,5 +1,6 @@
 import os
 import string
+import subprocess
 
 from oqs import template
 
@@ -53,6 +54,46 @@ def scan_upstream(basename):
         raise KemException(msg)
 
     return kem_dirs
+
+
+def scan_kem_dirs_object_files(kem_dir, rm_rng=True):
+    for dirpath, _, filenames in os.walk(kem_dir):
+        for fn in filenames:
+            if fn.endswith('.o'):
+                if rm_rng and fn.endswith('rng.o'):
+                    continue
+
+                yield os.path.join(dirpath, fn)
+
+
+def get_symbols(obj_path):
+    cmd = ['nm', obj_path]
+    res = subprocess.run(cmd, stdout=subprocess.PIPE,
+                         stderr=subprocess.PIPE, check=True)
+
+    content = res.stdout.decode()
+    return filter_symbols(content)
+
+
+def filter_symbols(nm_output):
+    lines = nm_output.split('\n')
+    subset = [e for e in lines if (' T ' in e or ' D ' in e)]  # TODO: regex?
+
+    for s in subset:
+        _, _, symbol = s.split()
+        yield symbol
+
+
+def get_all_symbols(kem_dirs):
+    symbols = set()
+
+    for kd in kem_dirs:
+        for obj_path in scan_kem_dirs_object_files(kd):
+            print('process', obj_path)
+            for symbol in get_symbols(obj_path):
+                symbols.add(symbol)
+
+    return symbols
 
 
 def has_whitespace(s):
