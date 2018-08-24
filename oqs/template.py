@@ -74,3 +74,8 @@ OQS_ALGORITHM_C_TEMPLATE = '''\t}} else if (0 == strcasecmp(method_name, OQS_KEM
 #else
 \t\treturn NULL;
 #endif'''
+
+
+GLOBAL_SYMBOL_RENAMING_SEGMENT = """crypto_kem_keypair OQS_KEM_{0}_keypair
+crypto_kem_enc OQS_KEM_{0}_encaps
+crypto_kem_dec OQS_KEM_{0}_decaps"""

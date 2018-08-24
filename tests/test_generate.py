@@ -325,3 +325,13 @@ def test_kem_src_add_new_algorithm_already_done():
     params1 = get_fake_api_params(name='Fake Alg 2')
     result = generate.kem_src_add_new_algorithm(EXP_KEM_C_SEGMENT, [params0, params1])
     assert result == EXP_KEM_C_SEGMENT
+
+
+EXP_GLOBAL_SYMBOL_RENAME_SEGMENT = """crypto_kem_keypair OQS_KEM_Fake_Alg_1_keypair
+crypto_kem_enc OQS_KEM_Fake_Alg_1_encaps
+crypto_kem_dec OQS_KEM_Fake_Alg_1_decaps"""
+
+
+def test_global_symbol_renaming_content():
+    res = generate.global_symbol_renaming_content('Fake Alg 1')
+    assert res == EXP_GLOBAL_SYMBOL_RENAME_SEGMENT

@@ -15,6 +15,15 @@ KEYWORDS = [CRYPTO_SECRETKEYBYTES, CRYPTO_PUBLICKEYBYTES,
 
 EDIT = '// EDIT-WHEN-ADDING-KEM\n'
 
+# TODO: create global symbol renaming files
+#
+# TODO: create local symbol renaming file
+# TODO: data structure for scanning upstream
+# TODO: modify src/kem/Makefile
+# TODO: modify Makefile / enable new algorithms
+# TODO: KAT extraction
+# TODO: Stub out algorithm data sheet
+
 
 # TODO: handle varying whitespace between defines and value
 def parse_api_header(content):
@@ -104,16 +113,6 @@ def get_all_symbols(kem_dirs):
                 symbols.add(symbol)
 
     return symbols
-
-
-# TODO: create global symbol renaming files
-#
-# TODO: create local symbol renaming file
-# TODO: data structure for scanning upstream
-# TODO: modify src/kem/Makefile
-# TODO: modify Makefile / enable new algorithms
-# TODO: KAT extraction
-# TODO: Stub out algorithm data sheet
 
 
 def has_whitespace(s):
@@ -231,6 +230,12 @@ def kem_src_add_new_algorithm(content, params):
 
     updated = '\n'.join(lines)
     return updated
+
+
+def global_symbol_renaming_content(basename):
+    # TODO: refactor to sanitised name
+    safe = sanitise_name(basename)
+    return template.GLOBAL_SYMBOL_RENAMING_SEGMENT.format(safe)
 
 
 def oqs_wrapper(basename):
