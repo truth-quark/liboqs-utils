@@ -1,8 +1,8 @@
 import os
 import string
-import subprocess
 
-from oqs import template
+from oqs import template, KemException
+
 
 CRYPTO_SECRETKEYBYTES = 'CRYPTO_SECRETKEYBYTES'
 CRYPTO_PUBLICKEYBYTES = 'CRYPTO_PUBLICKEYBYTES'
@@ -46,73 +46,6 @@ def parse_api_header(content):
                 break
 
     return result
-
-
-def find_kem_dirs(basename):
-    """Search KEM upstream dir, returning list of dirs containing api.h file."""
-    # TODO: assume script run from project root
-    upstream_dir = 'src/kem/{}/upstream'
-    kem_dirs = []
-
-    # TODO; find api.h files to enable generation of wrapper code
-    for dirpath, _, filenames in os.walk(upstream_dir.format(basename)):
-        if 'api.h' in filenames:
-            kem_dirs.append(dirpath)
-
-    if not kem_dirs:
-        msg = 'api.h not found in subdirs of {}'.format(upstream_dir)
-        raise KemException(msg)
-
-    return kem_dirs
-
-
-def find_object_files(kem_dir, skip_rng=True):
-    """
-    Recursively finds '.o' obj files in given dir.
-    :param kem_dir: dir path to search recursively
-    :param skip_rng: True
-    :return: yields paths to object files
-    """
-    for dirpath, _, filenames in os.walk(kem_dir):
-        for fn in filenames:
-            if fn.endswith('.o'):
-                if skip_rng and fn.endswith('rng.o'):
-                    continue
-
-                yield os.path.join(dirpath, fn)
-
-
-def get_symbols(obj_path):
-    cmd = ['nm', obj_path]
-    res = subprocess.run(cmd, stdout=subprocess.PIPE,
-                         stderr=subprocess.PIPE, check=True)
-
-    content = res.stdout.decode()
-    return filter_symbols(content)
-
-
-def filter_symbols(nm_output):
-    lines = nm_output.split('\n')
-    subset = [e for e in lines if (' T ' in e or ' D ' in e)]  # TODO: regex?
-
-    for s in subset:
-        _, _, symbol = s.split()
-        yield symbol
-
-
-def get_all_symbols(kem_dirs):
-    """
-    Returns unique list of symbols from object files within KEM dirs.
-    :param kem_dirs: sequence of dir paths
-    """
-    symbols = set()
-
-    for kd in kem_dirs:
-        for obj_path in find_object_files(kd):
-            for symbol in get_symbols(obj_path):
-                symbols.add(symbol)
-
-    return symbols
 
 
 def has_whitespace(s):
@@ -244,12 +177,11 @@ def local_symbol_renaming_content(symbols):
     return '{}\n'.format('\n'.join(sorted(symbols)))
 
 
-def oqs_wrapper(basename):
+def oqs_wrapper(basename, kem_dirs):
     """Generate liboqs wrapper files."""
     # TODO: assume upstream dir is created
     # TODO: need a class with path attrs
 
-    kem_dirs = find_kem_dirs(basename)
     params = {}
 
     for kd in kem_dirs:
@@ -290,10 +222,9 @@ def oqs_wrapper(basename):
             f.write(new_content)
 
 
-class KemException(Exception):
-    pass
-
-
 if __name__ == '__main__':
     import sys
-    oqs_wrapper(sys.argv[1])
+    from oqs import scanner
+    base_name = sys.argv[1]
+    kdirs = scanner.find_kem_dirs(base_name)
+    oqs_wrapper(base_name, kdirs)
