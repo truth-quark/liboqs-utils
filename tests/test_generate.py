@@ -335,3 +335,9 @@ crypto_kem_dec OQS_KEM_Fake_Alg_1_decaps"""
 def test_global_symbol_renaming_content():
     res = generate.global_symbol_renaming_content('Fake Alg 1')
     assert res == EXP_GLOBAL_SYMBOL_RENAME_SEGMENT
+
+
+def test_local_symbol_renaming_content():
+    symbols = set(['func_C', 'func_B', 'func_A'])
+    res = generate.local_symbol_renaming_content(symbols)
+    assert res == 'func_A\nfunc_B\nfunc_C\n'

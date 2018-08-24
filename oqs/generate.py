@@ -233,9 +233,15 @@ def kem_src_add_new_algorithm(content, params):
 
 
 def global_symbol_renaming_content(basename):
+    """Generate content for symbols_global_rename_NAME.txt file."""
     # TODO: refactor to sanitised name
     safe = sanitise_name(basename)
     return template.GLOBAL_SYMBOL_RENAMING_SEGMENT.format(safe)
+
+
+def local_symbol_renaming_content(symbols):
+    """Generate content for symbols_local.txt file."""
+    return '{}\n'.format('\n'.join(sorted(symbols)))
 
 
 def oqs_wrapper(basename):
