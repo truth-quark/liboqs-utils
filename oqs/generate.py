@@ -39,7 +39,8 @@ def parse_api_header(content):
     return result
 
 
-def scan_upstream(basename):
+def find_kem_dirs(basename):
+    """Search KEM upstream dir, returning list of dirs containing api.h file."""
     # TODO: assume script run from project root
     upstream_dir = 'src/kem/{}/upstream'
     kem_dirs = []
@@ -56,11 +57,17 @@ def scan_upstream(basename):
     return kem_dirs
 
 
-def scan_kem_dirs_object_files(kem_dir, rm_rng=True):
+def find_object_files(kem_dir, skip_rng=True):
+    """
+    Recursively finds '.o' obj files in given dir.
+    :param kem_dir: dir path to search recursively
+    :param skip_rng: True
+    :return: yields paths to object files
+    """
     for dirpath, _, filenames in os.walk(kem_dir):
         for fn in filenames:
             if fn.endswith('.o'):
-                if rm_rng and fn.endswith('rng.o'):
+                if skip_rng and fn.endswith('rng.o'):
                     continue
 
                 yield os.path.join(dirpath, fn)
@@ -85,15 +92,28 @@ def filter_symbols(nm_output):
 
 
 def get_all_symbols(kem_dirs):
+    """
+    Returns unique list of symbols from object files within KEM dirs.
+    :param kem_dirs: sequence of dir paths
+    """
     symbols = set()
 
     for kd in kem_dirs:
-        for obj_path in scan_kem_dirs_object_files(kd):
-            print('process', obj_path)
+        for obj_path in find_object_files(kd):
             for symbol in get_symbols(obj_path):
                 symbols.add(symbol)
 
     return symbols
+
+
+# TODO: create global symbol renaming files
+#
+# TODO: create local symbol renaming file
+# TODO: data structure for scanning upstream
+# TODO: modify src/kem/Makefile
+# TODO: modify Makefile / enable new algorithms
+# TODO: KAT extraction
+# TODO: Stub out algorithm data sheet
 
 
 def has_whitespace(s):
@@ -145,9 +165,9 @@ def kem_header_add_new_algorithm(basename, content, params):
     # update count of algorithms
     lines = content.split('\n')
     count = len([e for e in lines if e.startswith('#define OQS_KEM_alg_')])
-    blah = [e for e in lines if e.startswith('#define OQS_KEM_algs_length')]
-    assert len(blah) == 1
-    i = lines.index(blah[0])
+    alg_len = [e for e in lines if e.startswith('#define OQS_KEM_algs_length')]
+    assert len(alg_len) == 1
+    i = lines.index(alg_len[0])
     lines[i] = '#define OQS_KEM_algs_length {}'.format(count)
 
     # include new header files at bottom
@@ -218,7 +238,7 @@ def oqs_wrapper(basename):
     # TODO: assume upstream dir is created
     # TODO: need a class with path attrs
 
-    kem_dirs = scan_upstream(basename)
+    kem_dirs = find_kem_dirs(basename)
     params = {}
 
     for kd in kem_dirs:
