@@ -39,15 +39,24 @@ def find_object_files(kem_dir, skip_rng=True):
 
 
 def get_symbols(obj_path):
+    """
+    Extract symbols from object file using 'nm'
+    :param obj_path: object file to extract symbols from
+    :return: string decoded output
+    """
     cmd = ['nm', obj_path]
     res = subprocess.run(cmd, stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE, check=True)
 
-    content = res.stdout.decode()
-    return filter_symbols(content)
+    return res.stdout.decode()
 
 
 def filter_symbols(nm_output):
+    """
+    Extracts Data and Code section symbols from the output of 'nm'
+    :param nm_output:
+    :return: yields raw symbol names
+    """
     lines = nm_output.split('\n')
     subset = [e for e in lines if (' T ' in e or ' D ' in e)]  # TODO: regex?
 
