@@ -4,3 +4,4 @@
 *.geany
 .pytest_cache/
 *~
+.coverage
