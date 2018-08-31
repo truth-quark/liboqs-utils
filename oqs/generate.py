@@ -14,11 +14,12 @@ KEYWORDS = [CRYPTO_SECRETKEYBYTES, CRYPTO_PUBLICKEYBYTES,
             CRYPTO_BYTES, CRYPTO_CIPHERTEXTBYTES, CRYPTO_ALGNAME]
 
 EDIT = '// EDIT-WHEN-ADDING-KEM\n'
+EDIT_MAKE = '# EDIT-WHEN-ADDING-KEM\n'
 
 # TODO: create global symbol renaming files
-#
 # TODO: create local symbol renaming file
 # TODO: data structure for scanning upstream
+
 # TODO: modify src/kem/Makefile
 # TODO: modify Makefile / enable new algorithms
 # TODO: KAT extraction
@@ -175,6 +176,16 @@ def global_symbol_renaming_content(basename):
 def local_symbol_renaming_content(symbols):
     """Generate content for symbols_local.txt file."""
     return '{}\n'.format('\n'.join(sorted(symbols)))
+
+
+def kem_makefile_add_header(content, basename):
+    """Include new algorithm header file in src/kem/Makefile"""
+    new = 'include src/kem/{}/Makefile\n'.format(basename)
+
+    if new not in content:
+        content = content.replace(EDIT_MAKE, new + EDIT_MAKE)
+
+    return content
 
 
 def oqs_wrapper(basename, kem_dirs):
