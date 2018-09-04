@@ -1,7 +1,47 @@
 import os
+import string
 import subprocess
 
 import oqs
+
+
+KEYWORDS = [oqs.CRYPTO_SECRETKEYBYTES, oqs.CRYPTO_PUBLICKEYBYTES,
+            oqs.CRYPTO_BYTES, oqs.CRYPTO_CIPHERTEXTBYTES, oqs.CRYPTO_ALGNAME]
+
+
+# TODO: handle varying whitespace between defines and value
+def parse_api_header(content):
+    """
+    Extract defined vars from NIST api.h
+    :content string of the entire header file
+    """
+    result = {}
+    for line in content.split('\n'):
+        for kw in KEYWORDS:
+            if kw in line:
+                _, _, value = line.strip().split()
+                value = value.strip()
+
+                if kw == oqs.CRYPTO_ALGNAME:
+                    assert value[0] == value[-1] == '"'
+                    value = value[1:-1]
+
+                result[kw] = value
+                break
+
+    return result
+
+
+def has_whitespace(s):
+    """Returns True if string contains whitespace."""
+    for c in string.whitespace:
+        if c in s:
+            return True
+    return False
+
+
+def sanitise_name(s):
+    return s.replace(' ', '_')
 
 
 def find_kem_dirs(basename):
@@ -78,3 +118,31 @@ def get_all_symbols(kem_dirs):
                 symbols.add(symbol)
 
     return symbols
+
+
+def scan(basename):
+    data = {'basename': basename,
+            'sanitised_name': sanitise_name(basename),
+            }
+
+    data['BASENAME'] = data['sanitised_name'].upper()
+
+    # find all upstream algorithms dirs of interest
+    kem_dirs = find_kem_dirs(basename)
+    data['alg_variants'] = {kd: None for kd in kem_dirs}
+
+    # scan for algorithm variant data in each of the KEM dirs
+    for kd in kem_dirs:
+        api_h = os.path.join(kd, 'api.h')
+
+        # TODO: potentially refactor with named tuples
+        with open(api_h) as f:
+            alg = data['alg_variants']
+            alg[kd] = parse_api_header(f.read())
+            alg_name = alg[kd][oqs.CRYPTO_ALGNAME]
+            safe = sanitise_name(alg_name)
+            alg[kd]['sanitised_name'] = safe
+            alg[kd]['nist-level'] = 'TODO'
+            alg[kd]['ind-cca'] = 'TODO'
+
+    return data

@@ -1,21 +1,12 @@
 from oqs import generate
 
-FAKE_API_HEADER = """
-#ifndef api_h
-#define api_h
-#define CRYPTO_SECRETKEYBYTES 1
-#define CRYPTO_PUBLICKEYBYTES 2
-#define CRYPTO_BYTES 3
-#define CRYPTO_CIPHERTEXTBYTES 4
-#define CRYPTO_ALGNAME "NAME"
-
-int crypto_kem_keypair(unsigned char *pk, unsigned char *sk);
-int crypto_kem_enc(unsigned char *ct, unsigned char *ss, const unsigned char *pk);
-int crypto_kem_dec(unsigned char *ss, const unsigned char *ct, const unsigned char *sk);
-#endif
-"""
+FAKE1 = 'Fake Alg 1'
+FAKE2 = 'Fake Alg 2'
+FAKE1_SAFE = 'Fake_Alg_1'
+FAKE2_SAFE = 'Fake_Alg_2'
 
 
+# FIXME: ditch extern
 EXP_KEM_HEADER_SEGMENT = """
 #ifdef OQS_ENABLE_KEM_Fake_Alg_1
 
@@ -180,49 +171,43 @@ EXP_KEM_H = """/** Algorithm identifier for default KEM algorithm. */
 """
 
 
-def test_parse_api_header():
-    res = generate.parse_api_header(FAKE_API_HEADER)
-    assert len(res) == 5
-    assert res['CRYPTO_SECRETKEYBYTES'] == '1'
-    assert res['CRYPTO_PUBLICKEYBYTES'] == '2'
-    assert res['CRYPTO_BYTES'] == '3'
-    assert res['CRYPTO_CIPHERTEXTBYTES'] == '4'
-    assert res['CRYPTO_ALGNAME'] == 'NAME'
-
-
 def get_fake_api_params(pk=10, sk=15, ct=20, ss=25, name='FakeAlg1'):
     params = {'CRYPTO_PUBLICKEYBYTES': pk,
               'CRYPTO_SECRETKEYBYTES': sk,
               'CRYPTO_CIPHERTEXTBYTES': ct,
               'CRYPTO_BYTES': ss,  # shared secret
-              'CRYPTO_ALGNAME': name}
+              'CRYPTO_ALGNAME': name,
+              'sanitised_name': name.replace(' ', '_'),
+              'nist-level': 'TODO',
+              'ind-cca': 'TODO',
+              }
 
     return params
 
 
 def test_kem_header_segment():
-    api_params = get_fake_api_params(name='Fake Alg 1')
+    api_params = get_fake_api_params(name=FAKE1_SAFE)
     seg = generate.kem_header_segment(api_params)
     assert seg in EXP_KEM_HEADER_SEGMENT  # allow some whitespace leeway
 
 
 def test_kem_header_file():
-    params0 = get_fake_api_params(name='Fake Alg 1')
+    params0 = get_fake_api_params(name=FAKE1)
     params1 = get_fake_api_params(pk=50, sk=55, ct=60, ss=65, name='Fake Alg 2')
-    header = generate.kem_header_file('Fake Alg', [params0, params1])
+    header = generate.kem_header_file('FAKE_ALG', [params0, params1])
     assert header in EXP_KEM_HEADER
 
 
 def test_kem_src_segment():
-    params0 = get_fake_api_params(name='Fake Alg 1')
+    params0 = get_fake_api_params(name=FAKE1)
     src = generate.kem_src_segment(params0)
     assert src in EXP_KEM_SRC_SEGMENT
 
 
 def test_kem_src_file():
-    params0 = get_fake_api_params(name='Fake Alg 1')
-    params1 = get_fake_api_params(name='Fake Alg 2')
-    src = generate.kem_src_file('Fake', [params0, params1])
+    params0 = get_fake_api_params(name=FAKE1_SAFE)
+    params1 = get_fake_api_params(name=FAKE2_SAFE)
+    src = generate.kem_src_file('fake', [params0, params1])
     assert src in EXP_KEM_SRC
 
 
@@ -237,10 +222,10 @@ def test_kem_header_add_new_algorithm():
            '#include <oqs/kem_lima.h>\n' \
            '// EDIT-WHEN-ADDING-KEM\n'
 
-    params0 = get_fake_api_params(name='Fake Alg 1')
-    params1 = get_fake_api_params(name='Fake Alg 2')
-    result = generate.kem_header_add_new_algorithm('fake', cont, [params0, params1])
-    assert result == EXP_KEM_H
+    params0 = get_fake_api_params(name=FAKE1)
+    params1 = get_fake_api_params(name=FAKE2)
+    res = generate.kem_header_add_new_algorithm('fake', cont, [params0, params1])
+    assert res == EXP_KEM_H
 
 
 ORIG_KEM_C_SEGMENT = '''char *OQS_KEM_alg_identifier(size_t i) {
@@ -333,7 +318,7 @@ crypto_kem_dec OQS_KEM_Fake_Alg_1_decaps"""
 
 
 def test_global_symbol_renaming_content():
-    res = generate.global_symbol_renaming_content('Fake Alg 1')
+    res = generate.global_symbol_renaming_content('Fake_Alg_1')
     assert res == EXP_GLOBAL_SYMBOL_RENAME_SEGMENT
 
 
