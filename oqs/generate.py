@@ -1,17 +1,12 @@
 import os
 import string
 
-from oqs import template, KemException
+import oqs
+from oqs import template
 
 
-CRYPTO_SECRETKEYBYTES = 'CRYPTO_SECRETKEYBYTES'
-CRYPTO_PUBLICKEYBYTES = 'CRYPTO_PUBLICKEYBYTES'
-CRYPTO_BYTES = 'CRYPTO_BYTES'
-CRYPTO_CIPHERTEXTBYTES = 'CRYPTO_CIPHERTEXTBYTES'
-CRYPTO_ALGNAME = 'CRYPTO_ALGNAME'
-
-KEYWORDS = [CRYPTO_SECRETKEYBYTES, CRYPTO_PUBLICKEYBYTES,
-            CRYPTO_BYTES, CRYPTO_CIPHERTEXTBYTES, CRYPTO_ALGNAME]
+KEYWORDS = [oqs.CRYPTO_SECRETKEYBYTES, oqs.CRYPTO_PUBLICKEYBYTES,
+            oqs.CRYPTO_BYTES, oqs.CRYPTO_CIPHERTEXTBYTES, oqs.CRYPTO_ALGNAME]
 
 EDIT = '// EDIT-WHEN-ADDING-KEM\n'
 EDIT_MAKE = '# EDIT-WHEN-ADDING-KEM\n'
@@ -40,7 +35,7 @@ def parse_api_header(content):
                 _, _, value = line.strip().split()
                 value = value.strip()
 
-                if kw == CRYPTO_ALGNAME:
+                if kw == oqs.CRYPTO_ALGNAME:
                     assert value[0] == value[-1] == '"'
                     value = value[1:-1]
 
@@ -65,9 +60,9 @@ def sanitise_name(s):
 def kem_header_segment(params):
     """Returns algorithm C header segment for a specific algorithm."""
     # FIXME: changes params
-    if has_whitespace(params[CRYPTO_ALGNAME]):
-        sanitised = sanitise_name(params[CRYPTO_ALGNAME])
-        params[CRYPTO_ALGNAME] = sanitised
+    if has_whitespace(params[oqs.CRYPTO_ALGNAME]):
+        sanitised = sanitise_name(params[oqs.CRYPTO_ALGNAME])
+        params[oqs.CRYPTO_ALGNAME] = sanitised
 
     return template.API_HEADER_SEGMENT_TEMPLATE.format_map(params)
 
@@ -87,14 +82,14 @@ def kem_header_add_new_algorithm(basename, content, params):
     # add algorithm ID strings
     if content.count(EDIT) == 2:
         for p in params:
-            safe = sanitise_name(p[CRYPTO_ALGNAME])
+            safe = sanitise_name(p[oqs.CRYPTO_ALGNAME])
             tmp = template.OQS_ALGORITHM_H_TEMPLATE.format(safe)
 
             if tmp not in content:
                 tmp_edit = tmp + '\n' + EDIT
                 content = content.replace(EDIT, tmp_edit, 1)
     else:
-        raise KemException('Too many/few "// EDIT-WHEN-ADDING-KEM" strings')
+        raise oqs.KemException('Too many/few "// EDIT-WHEN-ADDING-KEM" strings')
 
     # update count of algorithms
     lines = content.split('\n')
@@ -120,9 +115,9 @@ def kem_src_segment(params):
     params['nist-level'] = 'TODO'
     params['ind-cca'] = 'TODO'
 
-    if has_whitespace(params[CRYPTO_ALGNAME]):
-        sanitised = sanitise_name(params[CRYPTO_ALGNAME])
-        params[CRYPTO_ALGNAME] = sanitised
+    if has_whitespace(params[oqs.CRYPTO_ALGNAME]):
+        sanitised = sanitise_name(params[oqs.CRYPTO_ALGNAME])
+        params[oqs.CRYPTO_ALGNAME] = sanitised
 
     return template.API_SRC_SEGMENT_TEMPLATE.format_map(params)
 
@@ -138,7 +133,7 @@ def kem_src_file(basename, params):
 def kem_src_add_new_algorithm(content, params):
     """Updates src/kem/kem.c in place for adding new algorithms."""
     lines = content.split('\n')
-    safe_names = [sanitise_name(p[CRYPTO_ALGNAME]) for p in params]
+    safe_names = [sanitise_name(p[oqs.CRYPTO_ALGNAME]) for p in params]
     tmp = [e for e in lines if 'OQS_KEM_alg_default' in e]
     assert len(tmp) == 2
     ids = tmp[0]

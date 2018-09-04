@@ -1,7 +1,7 @@
 import os
 import subprocess
 
-from oqs import KemException
+import oqs
 
 
 def find_kem_dirs(basename):
@@ -17,7 +17,7 @@ def find_kem_dirs(basename):
 
     if not kem_dirs:
         msg = 'api.h not found in subdirs of {}'.format(upstream_dir)
-        raise KemException(msg)
+        raise oqs.KemException(msg)
 
     return kem_dirs
 
