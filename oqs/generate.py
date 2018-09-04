@@ -19,9 +19,10 @@ EDIT_MAKE = '# EDIT-WHEN-ADDING-KEM\n'
 # TODO: create global symbol renaming files
 # TODO: create local symbol renaming file
 # TODO: data structure for scanning upstream
-
 # TODO: modify src/kem/Makefile
-# TODO: modify Makefile / enable new algorithms
+
+# TODO: generate algorithm makefile? where to get names for ENABLE_<> from???
+# TODO: modify project Makefile / enable new algorithms
 # TODO: KAT extraction
 # TODO: Stub out algorithm data sheet
 
@@ -166,10 +167,10 @@ def kem_src_add_new_algorithm(content, params):
     return updated
 
 
-def global_symbol_renaming_content(basename):
+def global_symbol_renaming_content(alg_name):
     """Generate content for symbols_global_rename_NAME.txt file."""
     # TODO: refactor to sanitised name
-    safe = sanitise_name(basename)
+    safe = sanitise_name(alg_name)
     return template.GLOBAL_SYMBOL_RENAMING_SEGMENT.format(safe)
 
 
@@ -190,7 +191,7 @@ def kem_makefile_add_header(content, basename):
 
 def oqs_wrapper(basename, kem_dirs):
     """Generate liboqs wrapper files."""
-    # TODO: assume upstream dir is created
+    # NB: assumes upstream dir already exists
     # TODO: need a class with path attrs
 
     params = {}
@@ -202,18 +203,20 @@ def oqs_wrapper(basename, kem_dirs):
         param = parse_api_header(content)
         params[path] = param
 
+    # generate KEM wrapper header file
     header_path = 'src/kem/{}/kem_{}.h'.format(basename, basename)
 
     with open(header_path, 'w') as f:
         header = kem_header_file(basename, params.values())
         f.write(header)
 
+    # generate KEM wrapper source file
     src_path = 'src/kem/{}/kem_{}.c'.format(basename, basename)
     with open(src_path, 'w') as f:
         src = kem_src_file(basename, params.values())
         f.write(src)
 
-    # TODO: edit kem.h for content
+    # update kem.h for wrapper content
     kem_h_path = 'src/kem/kem.h'
     content = open(kem_h_path).read()
     new_content = kem_header_add_new_algorithm(basename, content, params.values())
@@ -222,7 +225,7 @@ def oqs_wrapper(basename, kem_dirs):
         with open(kem_h_path, 'w') as f:
             f.write(new_content)
 
-    # TODO: edit kem.c for content
+    # update kem.c for for wrapper content
     kem_c_path = 'src/kem/kem.c'
     content = open(kem_c_path).read()
 
