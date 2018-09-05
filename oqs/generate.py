@@ -1,3 +1,4 @@
+import os
 import sys
 
 import oqs
@@ -136,6 +137,30 @@ def kem_makefile_add_header(content, basename):
     return content
 
 
+def srcs_block(kem_params):
+    """Generate list of files for SRCS_KEM_<ALG>= makefile variable."""
+    sname = kem_params['SANITISED_NAME']
+    indent = len(sname) + 10
+    src_files = kem_params['src_files']
+    lines = ['$({}_DIR)/{} \\\n'.format(sname, s) for s in src_files[:-1]]
+    lines.append('$({}_DIR)/{}\n'.format(sname, src_files[-1]))
+
+    indented = [line.replace('$', indent * ' ' + '$') for line in lines[1:]]
+    indented.insert(0, lines[0])
+    return ''.join(indented)
+
+
+def algorithm_makefile_segment(basename, kem_dir, kem_params):
+    srcs_seg = srcs_block(kem_params)
+
+    tmp = {'basename': basename, 'kem_dir': kem_dir,
+           'srcs_block': srcs_seg,
+           }
+
+    tmp.update(kem_params)
+    return template.ALG_MAKEFILE_SEGMENT.format_map(tmp)
+
+
 # TODO: cleanup hard coded paths
 def generate_oqs_wrapper(basename, data):
     """Generate liboqs wrapper files."""
@@ -193,6 +218,8 @@ def generate_oqs_wrapper(basename, data):
 
 
 if __name__ == '__main__':
+    assert os.path.exists('.git')  # quick and dirty check for root dir
+
     base_name = sys.argv[1]
     scandata = scanner.scan(base_name)
 

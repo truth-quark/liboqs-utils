@@ -122,6 +122,20 @@ def get_all_symbols(kem_dirs):
     return symbols
 
 
+# TODO: generalise with find_object_files
+def find_src_files(kem_dir):
+    for dirpath, _, filenames in os.walk(kem_dir):
+        for fn in filenames:
+            if fn.endswith('.c'):
+                yield os.path.join(dirpath, fn)
+
+
+def filter_src_files(srcs, ignored=('rng.c', 'PQCgenKAT_kem.c')):
+    for c in srcs:
+        if os.path.basename(c) not in ignored:
+            yield c
+
+
 def scan(basename):
     safe = sanitise_name(basename)
     data = {'basename': basename,
@@ -144,8 +158,10 @@ def scan(basename):
             alg_name = alg[kd][oqs.CRYPTO_ALGNAME]
             safe = sanitise_name(alg_name)
             alg[kd][oqs.SAFE_NAME] = safe
+            alg[kd]['SANITISED_NAME'] = safe.upper()
             alg[kd]['nist-level'] = 'TODO'
             alg[kd]['ind-cca'] = 'TODO'
+            alg[kd]['src_files'] = list(filter_src_files(find_src_files(kd)))
 
     # object file scan
     tmp = list(data[oqs.ALG_VARS].keys())

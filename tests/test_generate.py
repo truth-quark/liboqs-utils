@@ -170,7 +170,7 @@ EXP_KEM_H = """/** Algorithm identifier for default KEM algorithm. */
 """
 
 
-def get_fake_api_params(pk=10, sk=15, ct=20, ss=25, name='FakeAlg1'):
+def get_fake_api_params(pk=10, sk=15, ct=20, ss=25, name='FakeAlg1', **kwargs):
     params = {'CRYPTO_PUBLICKEYBYTES': pk,
               'CRYPTO_SECRETKEYBYTES': sk,
               'CRYPTO_CIPHERTEXTBYTES': ct,
@@ -180,6 +180,9 @@ def get_fake_api_params(pk=10, sk=15, ct=20, ss=25, name='FakeAlg1'):
               'nist-level': 'TODO',
               'ind-cca': 'TODO',
               }
+
+    if kwargs:
+        params.update(kwargs)
 
     return params
 
@@ -352,3 +355,52 @@ def test_kem_makefile_add_header():
 def test_kem_makefile_add_header_already_done():
     res = generate.kem_makefile_add_header(SRC_KEM_MAKEFILE_WITH_HEADER, 'fake')
     assert res == SRC_KEM_MAKEFILE_WITH_HEADER
+
+
+EXP_SRCS_BLOCK = """$(TITANIUM_CCA_STD_DIR)/file0.c \\
+                          $(TITANIUM_CCA_STD_DIR)/file1.c
+"""
+
+
+def test_srcs_block():
+    params = get_fake_api_params(src_files=['file0.c', 'file1.c'],
+                                 SANITISED_NAME='TITANIUM_CCA_STD')
+    res = generate.srcs_block(params)
+    assert res == EXP_SRCS_BLOCK
+
+
+EXP_ALG_MAKEFILE_SEGMENT = """ifneq (,$(findstring titanium_cca_std_kem, $(ENABLE_KEMS)))
+UPSTREAMS+=titanium_cca_std_kem_upstream
+endif
+
+TITANIUM_CCA_STD_DIR=src/kem/titanium/upstream/Titanium_CCA_std
+
+SRCS_KEM_TITANIUM_CCA_STD=$(TITANIUM_CCA_STD_DIR)/encrypt.c \\
+                          $(TITANIUM_CCA_STD_DIR)/kem.c \\
+                          $(TITANIUM_CCA_STD_DIR)/ntt.c
+
+OBJS_KEM_TITANIUM_CCA_STD=$(SRCS_KEM_TITANIUM_CCA_STD:.c=.o)
+
+TO_CLEAN+=$(OBJS_KEM_TITANIUM_CCA_STD)
+
+src/kem/titanium/upstream/Titanium_CCA_std/%.o: src/kem/titanium/upstream/Titanium_CCA_std/%.c
+    $(CC) -O2 -fPIC -c -o $@ $<
+
+MODULE_TITANIUM_CCA_STD=kem_titanium_cca_std
+
+titanium_cca_std_kem_upstream: $(OBJS_KEM_TITANIUM_CCA_STD)
+    bash scripts/collect_objects.sh $(MODULE_TITANIUM_CCA_STD) $(OBJS_KEM_TITANIUM_CCA_STD)
+    bash scripts/symbols_global_rename.sh $(MODULE_TITANIUM_CCA_STD) src/kem/titanium/symbols_global_rename_titanium_cca_std.txt
+    bash scripts/symbols_local.sh $(MODULE_TITANIUM_CCA_STD) src/kem/titanium/symbols_local.txt
+"""
+
+
+def test_algorithm_makefile_segment():
+    name = 'titanium_cca_std'
+    src_files = ['encrypt.c', 'kem.c', 'ntt.c']
+    kem_dir = 'src/kem/titanium/upstream/Titanium_CCA_std'
+    params = get_fake_api_params(name=name, SANITISED_NAME=name.upper(),
+                                 src_files=src_files)
+
+    res = generate.algorithm_makefile_segment('titanium', kem_dir, params)
+    assert res == EXP_ALG_MAKEFILE_SEGMENT

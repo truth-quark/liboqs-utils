@@ -76,3 +76,26 @@ OQS_SRC_KEM_KEM_C_ALG_TEMPLATE = '''\t}} else if (0 == strcasecmp(method_name, O
 GLOBAL_SYMBOL_RENAMING_SEGMENT = """crypto_kem_keypair OQS_KEM_{0}_keypair
 crypto_kem_enc OQS_KEM_{0}_encaps
 crypto_kem_dec OQS_KEM_{0}_decaps"""
+
+
+ALG_MAKEFILE_SEGMENT = """ifneq (,$(findstring {sanitised_name}_kem, $(ENABLE_KEMS)))
+UPSTREAMS+={sanitised_name}_kem_upstream
+endif
+
+{SANITISED_NAME}_DIR={kem_dir}
+
+SRCS_KEM_{SANITISED_NAME}={srcs_block}
+OBJS_KEM_{SANITISED_NAME}=$(SRCS_KEM_{SANITISED_NAME}:.c=.o)
+
+TO_CLEAN+=$(OBJS_KEM_{SANITISED_NAME})
+
+{kem_dir}/%.o: {kem_dir}/%.c
+    $(CC) -O2 -fPIC -c -o $@ $<
+
+MODULE_{SANITISED_NAME}=kem_{sanitised_name}
+
+{sanitised_name}_kem_upstream: $(OBJS_KEM_{SANITISED_NAME})
+    bash scripts/collect_objects.sh $(MODULE_{SANITISED_NAME}) $(OBJS_KEM_{SANITISED_NAME})
+    bash scripts/symbols_global_rename.sh $(MODULE_{SANITISED_NAME}) src/kem/{basename}/symbols_global_rename_{sanitised_name}.txt
+    bash scripts/symbols_local.sh $(MODULE_{SANITISED_NAME}) src/kem/{basename}/symbols_local.txt
+"""

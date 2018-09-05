@@ -82,6 +82,12 @@ class TestFinders:
         res = scanner.filter_object_files(iter(objs))
         assert list(res) == objs[:1]
 
+    def test_find_src_files(self, walk):
+        walk.return_value = [['dirA', [], ['a', 'file.c']],
+                             ['dirB', [], ['file.txt']]]
+
+        assert list(scanner.find_src_files('.')) == ['dirA/file.c']
+
 
 def test_filter_symbols():
     content = '0000000000000000 T _BINT_to_OS\n' \
