@@ -327,15 +327,14 @@ def test_local_symbol_renaming_content():
     assert res == 'func_A\nfunc_B\nfunc_C\n'
 
 
-# TODO: name???
-KEM_MAKEFILE_ORIG = """example_kem: headers src/kem/example_kem.c liboqs
+SRC_KEM_MAKEFILE = """example_kem: headers src/kem/example_kem.c liboqs
 $(CC) src/kem/example_kem.c liboqs.a -o example_kem $(CFLAGS) $(LDFLAGS)
 
 include src/kem/frodokem/Makefile
 # EDIT-WHEN-ADDING-KEM
 """
 
-KEM_MAKEFILE_WITH_HEADER = """example_kem: headers src/kem/example_kem.c liboqs
+SRC_KEM_MAKEFILE_WITH_HEADER = """example_kem: headers src/kem/example_kem.c liboqs
 $(CC) src/kem/example_kem.c liboqs.a -o example_kem $(CFLAGS) $(LDFLAGS)
 
 include src/kem/frodokem/Makefile
@@ -346,10 +345,10 @@ include src/kem/fake/Makefile
 
 def test_kem_makefile_add_header():
     # TODO: convert to working with list of strings?
-    res = generate.kem_makefile_add_header(KEM_MAKEFILE_ORIG, basename='fake')
-    assert res == KEM_MAKEFILE_WITH_HEADER
+    res = generate.kem_makefile_add_header(SRC_KEM_MAKEFILE, basename='fake')
+    assert res == SRC_KEM_MAKEFILE_WITH_HEADER
 
 
 def test_kem_makefile_add_header_already_done():
-    res = generate.kem_makefile_add_header(KEM_MAKEFILE_WITH_HEADER, 'fake')
-    assert res == KEM_MAKEFILE_WITH_HEADER
+    res = generate.kem_makefile_add_header(SRC_KEM_MAKEFILE_WITH_HEADER, 'fake')
+    assert res == SRC_KEM_MAKEFILE_WITH_HEADER
