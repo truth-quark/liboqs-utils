@@ -1,4 +1,4 @@
-from oqs import generate
+from oqs import generate, ALG_VARS
 
 FAKE1 = 'Fake Alg 1'
 FAKE2 = 'Fake Alg 2'
@@ -280,13 +280,13 @@ OQS_KEM *OQS_KEM_new(const char *method_name) {
 #else
 \t\treturn NULL;
 #endif
-\t} else if (0 == strcasecmp(method_name, OQS_KEM_alg_Fake_Alg_1) {
+\t} else if (0 == strcasecmp(method_name, OQS_KEM_alg_Fake_Alg_1)) {
 #ifdef OQS_ENABLE_KEM_Fake_Alg_1
 \t\treturn OQS_KEM_Fake_Alg_1_new();
 #else
 \t\treturn NULL;
 #endif
-\t} else if (0 == strcasecmp(method_name, OQS_KEM_alg_Fake_Alg_2) {
+\t} else if (0 == strcasecmp(method_name, OQS_KEM_alg_Fake_Alg_2)) {
 #ifdef OQS_ENABLE_KEM_Fake_Alg_2
 \t\treturn OQS_KEM_Fake_Alg_2_new();
 #else
@@ -384,14 +384,14 @@ OBJS_KEM_TITANIUM_CCA_STD=$(SRCS_KEM_TITANIUM_CCA_STD:.c=.o)
 TO_CLEAN+=$(OBJS_KEM_TITANIUM_CCA_STD)
 
 src/kem/titanium/upstream/Titanium_CCA_std/%.o: src/kem/titanium/upstream/Titanium_CCA_std/%.c
-    $(CC) -O2 -fPIC -c -o $@ $<
+\t$(CC) -O2 -fPIC -c -o $@ $<
 
 MODULE_TITANIUM_CCA_STD=kem_titanium_cca_std
 
 titanium_cca_std_kem_upstream: $(OBJS_KEM_TITANIUM_CCA_STD)
-    bash scripts/collect_objects.sh $(MODULE_TITANIUM_CCA_STD) $(OBJS_KEM_TITANIUM_CCA_STD)
-    bash scripts/symbols_global_rename.sh $(MODULE_TITANIUM_CCA_STD) src/kem/titanium/symbols_global_rename_titanium_cca_std.txt
-    bash scripts/symbols_local.sh $(MODULE_TITANIUM_CCA_STD) src/kem/titanium/symbols_local.txt
+\tbash scripts/collect_objects.sh $(MODULE_TITANIUM_CCA_STD) $(OBJS_KEM_TITANIUM_CCA_STD)
+\tbash scripts/symbols_global_rename.sh $(MODULE_TITANIUM_CCA_STD) src/kem/titanium/symbols_global_rename_titanium_cca_std.txt
+\tbash scripts/symbols_local.sh $(MODULE_TITANIUM_CCA_STD) src/kem/titanium/symbols_local.txt
 """
 
 
@@ -404,3 +404,45 @@ def test_algorithm_makefile_segment():
 
     res = generate.algorithm_makefile_segment('titanium', kem_dir, params)
     assert res == EXP_ALG_MAKEFILE_SEGMENT
+
+
+EXP_ALG_MAKEFILE_SEGMENT_HEADER = """ifeq (x64,$(ARCH))
+ENABLE_KEMS+=$(findstring titanium_cca_std_kem, $(KEMS_TO_ENABLE))
+ENABLE_KEMS+=$(findstring titanium_cca_hi_kem, $(KEMS_TO_ENABLE))
+MAKE_FLAGS_KEM_TITANIUM=
+else ifeq (x86,$(ARCH))
+ENABLE_KEMS+=$(findstring titanium_cca_std_kem, $(KEMS_TO_ENABLE))
+ENABLE_KEMS+=$(findstring titanium_cca_hi_kem, $(KEMS_TO_ENABLE))
+MAKE_FLAGS_KEM_TITANIUM=
+endif
+
+HEADERS_KEM_TITANIUM=src/kem/titanium/kem_titanium.h
+HEADERS_KEM+=$(HEADERS_KEM_TITANIUM)
+
+OBJECT_DIRS+=.objs/kem/titanium
+OBJECTS_KEM_TITANIUM=.objs/kem/titanium/kem_titanium.o
+OBJECTS_KEM+=$(OBJECTS_KEM_TITANIUM)
+
+# build liboqs interface to upstream component
+.objs/kem/titanium/kem_titanium.o: headers src/kem/titanium/kem_titanium.c
+\t$(CC) -c src/kem/titanium/kem_titanium.c -o .objs/kem/titanium/kem_titanium.o $(CFLAGS)
+"""
+
+
+def test_algorithm_makefile_header_segment():
+    params = {'basename': 'titanium',
+              'BASENAME': 'TITANIUM',
+              ALG_VARS: {'src/kem/titanium/upstream/Titanium_CCA_std':
+                          {'SANITISED_NAME': 'TITANIUM_CCA_STD',
+                           'sanitised_name': 'titanium_cca_std',
+                           },
+
+                         'src/kem/emblem/upstream/Titanium_CCA_hi':
+                             {'SANITISED_NAME': 'TITANIUM_CCA_HI',
+                              'sanitised_name': 'titanium_cca_hi',
+                              },
+                         }
+              }
+
+    res = generate.algorithm_makefile_header_segment(params)
+    assert res == EXP_ALG_MAKEFILE_SEGMENT_HEADER

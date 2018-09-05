@@ -65,7 +65,7 @@ OQS_SRC_KEM_KEM_H_ALG_TEMPLATE = '''/** Algorithm identifier for {0}. */
 #define OQS_KEM_alg_{0} "{0}"'''
 
 
-OQS_SRC_KEM_KEM_C_ALG_TEMPLATE = '''\t}} else if (0 == strcasecmp(method_name, OQS_KEM_alg_{0}) {{
+OQS_SRC_KEM_KEM_C_ALG_TEMPLATE = '''\t}} else if (0 == strcasecmp(method_name, OQS_KEM_alg_{0})) {{
 #ifdef OQS_ENABLE_KEM_{0}
 \t\treturn OQS_KEM_{0}_new();
 #else
@@ -90,12 +90,32 @@ OBJS_KEM_{SANITISED_NAME}=$(SRCS_KEM_{SANITISED_NAME}:.c=.o)
 TO_CLEAN+=$(OBJS_KEM_{SANITISED_NAME})
 
 {kem_dir}/%.o: {kem_dir}/%.c
-    $(CC) -O2 -fPIC -c -o $@ $<
+\t$(CC) -O2 -fPIC -c -o $@ $<
 
 MODULE_{SANITISED_NAME}=kem_{sanitised_name}
 
 {sanitised_name}_kem_upstream: $(OBJS_KEM_{SANITISED_NAME})
-    bash scripts/collect_objects.sh $(MODULE_{SANITISED_NAME}) $(OBJS_KEM_{SANITISED_NAME})
-    bash scripts/symbols_global_rename.sh $(MODULE_{SANITISED_NAME}) src/kem/{basename}/symbols_global_rename_{sanitised_name}.txt
-    bash scripts/symbols_local.sh $(MODULE_{SANITISED_NAME}) src/kem/{basename}/symbols_local.txt
+\tbash scripts/collect_objects.sh $(MODULE_{SANITISED_NAME}) $(OBJS_KEM_{SANITISED_NAME})
+\tbash scripts/symbols_global_rename.sh $(MODULE_{SANITISED_NAME}) src/kem/{basename}/symbols_global_rename_{sanitised_name}.txt
+\tbash scripts/symbols_local.sh $(MODULE_{SANITISED_NAME}) src/kem/{basename}/symbols_local.txt
+"""
+
+EXP_ALG_MAKEFILE_SEGMENT_HEADER = """ifeq (x64,$(ARCH))
+{enable_kems_x64}
+MAKE_FLAGS_KEM_{BASENAME}=
+else ifeq (x86,$(ARCH))
+{enable_kems_x86}
+MAKE_FLAGS_KEM_{BASENAME}=
+endif
+
+HEADERS_KEM_{BASENAME}=src/kem/{basename}/kem_{basename}.h
+HEADERS_KEM+=$(HEADERS_KEM_{BASENAME})
+
+OBJECT_DIRS+=.objs/kem/{basename}
+OBJECTS_KEM_{BASENAME}=.objs/kem/{basename}/kem_{basename}.o
+OBJECTS_KEM+=$(OBJECTS_KEM_{BASENAME})
+
+# build liboqs interface to upstream component
+.objs/kem/{basename}/kem_{basename}.o: headers src/kem/{basename}/kem_{basename}.c
+\t$(CC) -c src/kem/{basename}/kem_{basename}.c -o .objs/kem/{basename}/kem_{basename}.o $(CFLAGS)
 """

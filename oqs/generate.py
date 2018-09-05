@@ -161,6 +161,32 @@ def algorithm_makefile_segment(basename, kem_dir, kem_params):
     return template.ALG_MAKEFILE_SEGMENT.format_map(tmp)
 
 
+def enable_kems(alg_names):
+    tmpl = 'ENABLE_KEMS+=$(findstring {}_kem, $(KEMS_TO_ENABLE))'
+    lines = [tmpl.format(n) for n in alg_names]
+    return '\n'.join(lines)
+
+
+def algorithm_makefile_header_segment(params):
+    tmp = {}
+    tmp.update(params)
+
+    alg_names = [params[ALG_VARS][p][SAFE_NAME] for p in params[ALG_VARS]]
+    tmp['enable_kems_x64'] = enable_kems(alg_names)
+    tmp['enable_kems_x86'] = enable_kems(alg_names)
+
+    return template.EXP_ALG_MAKEFILE_SEGMENT_HEADER.format_map(tmp)
+
+
+def generate_algorithm_makefile(params):
+    segs = [algorithm_makefile_header_segment(params)]
+    for kd in params[ALG_VARS]:
+        s = algorithm_makefile_segment(params['basename'], kd, params[ALG_VARS][kd])
+        segs.append(s)
+
+    return '\n'.join(segs)
+
+
 # TODO: cleanup hard coded paths
 def generate_oqs_wrapper(basename, data):
     """Generate liboqs wrapper files."""
@@ -176,7 +202,7 @@ def generate_oqs_wrapper(basename, data):
     # generate KEM wrapper source file
     src_path = 'src/kem/{0}/kem_{0}.c'.format(basename)
     with open(src_path, 'w') as f:
-        src = kem_src_file(data['BASENAME'], data[ALG_VARS].values())
+        src = kem_src_file(data[SAFE_NAME], data[ALG_VARS].values())
         f.write(src)
 
     # update kem.h for wrapper content
@@ -215,6 +241,10 @@ def generate_oqs_wrapper(basename, data):
         f.write(local_rename)
 
     # TODO: create Makefile / modify existing project ones
+    path = 'src/kem/{}/Makefile'.format(basename)
+
+    with open(path, 'w') as f:
+        f.write(generate_algorithm_makefile(data))
 
 
 if __name__ == '__main__':
