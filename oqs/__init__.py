@@ -5,6 +5,9 @@ CRYPTO_BYTES = 'CRYPTO_BYTES'
 CRYPTO_CIPHERTEXTBYTES = 'CRYPTO_CIPHERTEXTBYTES'
 CRYPTO_ALGNAME = 'CRYPTO_ALGNAME'
 
+SAFE_NAME = 'sanitised_name'
+ALG_VARS = 'alg_variants'
+
 
 class KemException(Exception):
     pass

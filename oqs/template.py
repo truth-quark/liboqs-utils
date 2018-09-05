@@ -61,12 +61,11 @@ API_SRC_TEMPLATE = """#include <stdlib.h>
 {segments}"""
 
 
-# TODO: fix naming
-OQS_ALGORITHM_H_TEMPLATE = '''/** Algorithm identifier for {0}. */
+OQS_SRC_KEM_KEM_H_ALG_TEMPLATE = '''/** Algorithm identifier for {0}. */
 #define OQS_KEM_alg_{0} "{0}"'''
 
-# TODO: fix naming
-OQS_ALGORITHM_C_TEMPLATE = '''\t}} else if (0 == strcasecmp(method_name, OQS_KEM_alg_{0}) {{
+
+OQS_SRC_KEM_KEM_C_ALG_TEMPLATE = '''\t}} else if (0 == strcasecmp(method_name, OQS_KEM_alg_{0}) {{
 #ifdef OQS_ENABLE_KEM_{0}
 \t\treturn OQS_KEM_{0}_new();
 #else
