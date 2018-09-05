@@ -75,10 +75,8 @@ def find_object_files(kem_dir):
 
 
 def filter_object_files(objs, ignored=('rng.o', 'PQCgenKAT_kem.o')):
-    basenames = [os.path.basename(o) for o in objs]
-
-    for o, b in zip(objs, basenames):
-        if b not in ignored:
+    for o in objs:
+        if os.path.basename(o) not in ignored:
             yield o
 
 
@@ -125,15 +123,15 @@ def get_all_symbols(kem_dirs):
 
 
 def scan(basename):
+    safe = sanitise_name(basename)
     data = {'basename': basename,
-            'sanitised_name': sanitise_name(basename),
+            'sanitised_name': safe,
+            'BASENAME': safe.upper(),
             }
-
-    data['BASENAME'] = data['sanitised_name'].upper()
 
     # find all upstream algorithms dirs of interest
     kem_dirs = find_kem_dirs(basename)
-    data['alg_variants'] = {kd: None for kd in kem_dirs}
+    data[oqs.ALG_VARS] = {kd: None for kd in kem_dirs}
 
     # scan for algorithm variant data in each of the KEM dirs
     for kd in kem_dirs:
@@ -141,15 +139,15 @@ def scan(basename):
 
         # TODO: potentially refactor with named tuples
         with open(api_h) as f:
-            alg = data['alg_variants']
+            alg = data[oqs.ALG_VARS]
             alg[kd] = parse_api_header(f.read())
             alg_name = alg[kd][oqs.CRYPTO_ALGNAME]
             safe = sanitise_name(alg_name)
-            alg[kd]['sanitised_name'] = safe
+            alg[kd][oqs.SAFE_NAME] = safe
             alg[kd]['nist-level'] = 'TODO'
             alg[kd]['ind-cca'] = 'TODO'
 
     # object file scan
-    tmp = list(data['alg_variants'].keys())
+    tmp = list(data[oqs.ALG_VARS].keys())
     data['symbols'] = get_all_symbols(tmp)
     return data

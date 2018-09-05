@@ -74,14 +74,13 @@ class TestFinders:
 
     def test_filter_object_files(self, _):
         objs = ['/path/file0.o', '/path2/file1.o']
-        res = scanner.filter_object_files(objs)
+        res = scanner.filter_object_files(iter(objs))
         assert list(res) == objs  # nothing to be filtered
 
     def test_filter_object_files_with_ignore(self, _):
         objs = ['/path/file0.o', '/path2/rng.o', '/path3/PQCgenKAT_kem.o']
-        res = scanner.filter_object_files(objs)
+        res = scanner.filter_object_files(iter(objs))
         assert list(res) == objs[:1]
-
 
 
 def test_filter_symbols():
