@@ -7,12 +7,12 @@ from oqs import template, scanner
 EDIT = '// EDIT-WHEN-ADDING-KEM\n'
 EDIT_MAKE = '# EDIT-WHEN-ADDING-KEM\n'
 
-# TODO: create global symbol renaming files
-# TODO: create local symbol renaming file
 # TODO: modify src/kem/Makefile
-
 # TODO: generate algorithm makefile? where to get names for ENABLE_<> from???
 # TODO: modify project Makefile / enable new algorithms
+
+# TODO: remove rng.c
+# TODO: try to remove rng.h?
 # TODO: KAT extraction
 # TODO: Stub out algorithm data sheet
 
@@ -168,6 +168,24 @@ def generate_oqs_wrapper(basename, data):
     if new_content:
         with open(kem_c_path, 'w') as f:
             f.write(new_content)
+
+    # symbol renaming
+    for alg in data['alg_variants'].values():
+        global_rename = global_symbol_renaming_content(alg['sanitised_name'])
+        path_t = 'src/kem/{}/symbols_global_rename_{}.txt'
+        path = path_t.format(basename, alg['sanitised_name'])
+
+        with open(path, 'w') as f:
+            f.write(global_rename)
+
+    # local symbol rename
+    local_rename = local_symbol_renaming_content(data['symbols'])
+    path = 'src/kem/{}/symbols_local.txt'.format(basename)
+
+    with open(path, 'w') as f:
+        f.write(local_rename)
+
+    # TODO: create Makefile / modify existing project ones
 
 
 if __name__ == '__main__':

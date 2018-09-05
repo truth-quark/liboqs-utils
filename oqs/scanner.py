@@ -62,6 +62,7 @@ def find_kem_dirs(basename):
     return kem_dirs
 
 
+# FIXME: remove PQCgetKATkem thingy
 def find_object_files(kem_dir, skip_rng=True):
     """
     Recursively finds '.o' obj files in given dir.
@@ -114,7 +115,7 @@ def get_all_symbols(kem_dirs):
 
     for kd in kem_dirs:
         for obj_path in find_object_files(kd):
-            for symbol in get_symbols(obj_path):
+            for symbol in filter_symbols(get_symbols(obj_path)):
                 symbols.add(symbol)
 
     return symbols
@@ -145,4 +146,7 @@ def scan(basename):
             alg[kd]['nist-level'] = 'TODO'
             alg[kd]['ind-cca'] = 'TODO'
 
+    # object file scan
+    tmp = list(data['alg_variants'].keys())
+    data['symbols'] = get_all_symbols(tmp)
     return data
