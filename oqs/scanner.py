@@ -62,21 +62,24 @@ def find_kem_dirs(basename):
     return kem_dirs
 
 
-# FIXME: remove PQCgetKATkem thingy
-def find_object_files(kem_dir, skip_rng=True):
+def find_object_files(kem_dir):
     """
     Recursively finds '.o' obj files in given dir.
     :param kem_dir: dir path to search recursively
-    :param skip_rng: True
     :return: yields paths to object files
     """
     for dirpath, _, filenames in os.walk(kem_dir):
         for fn in filenames:
             if fn.endswith('.o'):
-                if skip_rng and fn.endswith('rng.o'):
-                    continue
-
                 yield os.path.join(dirpath, fn)
+
+
+def filter_object_files(objs, ignored=('rng.o', 'PQCgenKAT_kem.o')):
+    basenames = [os.path.basename(o) for o in objs]
+
+    for o, b in zip(objs, basenames):
+        if b not in ignored:
+            yield o
 
 
 def get_symbols(obj_path):
@@ -114,7 +117,7 @@ def get_all_symbols(kem_dirs):
     symbols = set()
 
     for kd in kem_dirs:
-        for obj_path in find_object_files(kd):
+        for obj_path in filter_object_files(find_object_files(kd)):
             for symbol in filter_symbols(get_symbols(obj_path)):
                 symbols.add(symbol)
 

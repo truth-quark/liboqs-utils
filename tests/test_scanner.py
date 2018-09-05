@@ -54,10 +54,9 @@ class TestFinders:
     def test_find_object_files(self, walk):
         walk.return_value = [['dirA', [], ['a', 'file.o']],
                              ['dirB', [], ['file.txt']],
-                             ['dirC', [], ['test.o']],
-                             ['dirD', [], ['rng.o']]]
+                             ['dirC', [], ['test.o']]]
 
-        files = list(scanner.find_object_files('fake-dir-path', skip_rng=True))
+        files = list(scanner.find_object_files('fake-dir-path'))
         assert files == ['dirA/file.o', 'dirC/test.o']
 
     def test_find_object_files_not_found(self, walk):
@@ -68,10 +67,21 @@ class TestFinders:
 
     def test_find_object_files_with_rng(self, walk):
         walk.return_value = [['dirA', [], ['a', 'file.o']],
-                             ['dirB', [], ['rng.o']]]
+                             ['dirB', [], ['rng.o', 'PQCgenKAT_kem.o']]]
 
-        files = list(scanner.find_object_files('fake-dir-path-2', skip_rng=False))
-        assert files == ['dirA/file.o', 'dirB/rng.o']
+        files = list(scanner.find_object_files('fake-dir-path-2'))
+        assert files == ['dirA/file.o', 'dirB/rng.o', 'dirB/PQCgenKAT_kem.o']
+
+    def test_filter_object_files(self, _):
+        objs = ['/path/file0.o', '/path2/file1.o']
+        res = scanner.filter_object_files(objs)
+        assert list(res) == objs  # nothing to be filtered
+
+    def test_filter_object_files_with_ignore(self, _):
+        objs = ['/path/file0.o', '/path2/rng.o', '/path3/PQCgenKAT_kem.o']
+        res = scanner.filter_object_files(objs)
+        assert list(res) == objs[:1]
+
 
 
 def test_filter_symbols():
