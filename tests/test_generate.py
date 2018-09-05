@@ -6,7 +6,6 @@ FAKE1_SAFE = 'Fake_Alg_1'
 FAKE2_SAFE = 'Fake_Alg_2'
 
 
-# FIXME: ditch extern
 EXP_KEM_HEADER_SEGMENT = """
 #ifdef OQS_ENABLE_KEM_Fake_Alg_1
 
@@ -17,9 +16,9 @@ EXP_KEM_HEADER_SEGMENT = """
 
 OQS_KEM *OQS_KEM_Fake_Alg_1_new();
 
-extern OQS_STATUS OQS_KEM_Fake_Alg_1_keypair(uint8_t *public_key, uint8_t *secret_key);
-extern OQS_STATUS OQS_KEM_Fake_Alg_1_encaps(uint8_t *ciphertext, uint8_t *shared_secret, const uint8_t *public_key);
-extern OQS_STATUS OQS_KEM_Fake_Alg_1_decaps(uint8_t *shared_secret, const unsigned char *ciphertext, const uint8_t *secret_key);
+OQS_STATUS OQS_KEM_Fake_Alg_1_keypair(uint8_t *public_key, uint8_t *secret_key);
+OQS_STATUS OQS_KEM_Fake_Alg_1_encaps(uint8_t *ciphertext, uint8_t *shared_secret, const uint8_t *public_key);
+OQS_STATUS OQS_KEM_Fake_Alg_1_decaps(uint8_t *shared_secret, const unsigned char *ciphertext, const uint8_t *secret_key);
 
 #endif
 """
@@ -39,9 +38,9 @@ EXP_KEM_HEADER = """#ifndef __OQS_KEM_FAKE_ALG_H
 
 OQS_KEM *OQS_KEM_Fake_Alg_1_new();
 
-extern OQS_STATUS OQS_KEM_Fake_Alg_1_keypair(uint8_t *public_key, uint8_t *secret_key);
-extern OQS_STATUS OQS_KEM_Fake_Alg_1_encaps(uint8_t *ciphertext, uint8_t *shared_secret, const uint8_t *public_key);
-extern OQS_STATUS OQS_KEM_Fake_Alg_1_decaps(uint8_t *shared_secret, const unsigned char *ciphertext, const uint8_t *secret_key);
+OQS_STATUS OQS_KEM_Fake_Alg_1_keypair(uint8_t *public_key, uint8_t *secret_key);
+OQS_STATUS OQS_KEM_Fake_Alg_1_encaps(uint8_t *ciphertext, uint8_t *shared_secret, const uint8_t *public_key);
+OQS_STATUS OQS_KEM_Fake_Alg_1_decaps(uint8_t *shared_secret, const unsigned char *ciphertext, const uint8_t *secret_key);
 
 #endif
 
@@ -54,9 +53,9 @@ extern OQS_STATUS OQS_KEM_Fake_Alg_1_decaps(uint8_t *shared_secret, const unsign
 
 OQS_KEM *OQS_KEM_Fake_Alg_2_new();
 
-extern OQS_STATUS OQS_KEM_Fake_Alg_2_keypair(uint8_t *public_key, uint8_t *secret_key);
-extern OQS_STATUS OQS_KEM_Fake_Alg_2_encaps(uint8_t *ciphertext, uint8_t *shared_secret, const uint8_t *public_key);
-extern OQS_STATUS OQS_KEM_Fake_Alg_2_decaps(uint8_t *shared_secret, const unsigned char *ciphertext, const uint8_t *secret_key);
+OQS_STATUS OQS_KEM_Fake_Alg_2_keypair(uint8_t *public_key, uint8_t *secret_key);
+OQS_STATUS OQS_KEM_Fake_Alg_2_encaps(uint8_t *ciphertext, uint8_t *shared_secret, const uint8_t *public_key);
+OQS_STATUS OQS_KEM_Fake_Alg_2_decaps(uint8_t *shared_secret, const unsigned char *ciphertext, const uint8_t *secret_key);
 
 #endif
 

@@ -1,5 +1,3 @@
-# FIXME: API to WRAPPER
-
 API_HEADER_SEGMENT_TEMPLATE = """#ifdef OQS_ENABLE_KEM_{sanitised_name}
 
 #define OQS_KEM_{sanitised_name}_length_public_key {CRYPTO_PUBLICKEYBYTES}
@@ -9,9 +7,9 @@ API_HEADER_SEGMENT_TEMPLATE = """#ifdef OQS_ENABLE_KEM_{sanitised_name}
 
 OQS_KEM *OQS_KEM_{sanitised_name}_new();
 
-extern OQS_STATUS OQS_KEM_{sanitised_name}_keypair(uint8_t *public_key, uint8_t *secret_key);
-extern OQS_STATUS OQS_KEM_{sanitised_name}_encaps(uint8_t *ciphertext, uint8_t *shared_secret, const uint8_t *public_key);
-extern OQS_STATUS OQS_KEM_{sanitised_name}_decaps(uint8_t *shared_secret, const unsigned char *ciphertext, const uint8_t *secret_key);
+OQS_STATUS OQS_KEM_{sanitised_name}_keypair(uint8_t *public_key, uint8_t *secret_key);
+OQS_STATUS OQS_KEM_{sanitised_name}_encaps(uint8_t *ciphertext, uint8_t *shared_secret, const uint8_t *public_key);
+OQS_STATUS OQS_KEM_{sanitised_name}_decaps(uint8_t *shared_secret, const unsigned char *ciphertext, const uint8_t *secret_key);
 
 #endif
 """
