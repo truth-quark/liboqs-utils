@@ -162,7 +162,7 @@ def algorithm_makefile_segment(basename, kem_dir, kem_params):
 
 
 def enable_kems(alg_names):
-    tmpl = 'ENABLE_KEMS+=$(findstring {}_kem, $(KEMS_TO_ENABLE))'
+    tmpl = 'ENABLE_KEMS+=$(findstring {}, $(KEMS_TO_ENABLE))'
     lines = [tmpl.format(n) for n in alg_names]
     return '\n'.join(lines)
 
@@ -190,8 +190,7 @@ def generate_algorithm_makefile(params):
 def enable_algorithms_root_makefile(content, params):
     # TODO: cleanup quick and dirty implementation?
     alg_names = [params[ALG_VARS][kd]['sanitised_name'] for kd in params[ALG_VARS]]
-    enabled_names = ['{}_kem'.format(n) for n in alg_names]
-    exists = [n in content for n in enabled_names]
+    exists = [n in content for n in alg_names]
 
     if all(exists):
         return content
@@ -206,7 +205,7 @@ def enable_algorithms_root_makefile(content, params):
         if line.startswith('KEMS_TO_ENABLE?='):
             break
 
-    new_line = '{}\n\t\t\t   {} \\'.format(line, ' '.join(enabled_names))
+    new_line = '{}\n\t\t\t   {} \\'.format(line, ' '.join(alg_names))
     lines[i] = new_line
     return '\n'.join(lines)
 

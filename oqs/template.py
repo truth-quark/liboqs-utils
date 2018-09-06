@@ -78,8 +78,8 @@ crypto_kem_enc OQS_KEM_{0}_encaps
 crypto_kem_dec OQS_KEM_{0}_decaps"""
 
 
-ALG_MAKEFILE_SEGMENT = """ifneq (,$(findstring {sanitised_name}_kem, $(ENABLE_KEMS)))
-UPSTREAMS+={sanitised_name}_kem_upstream
+ALG_MAKEFILE_SEGMENT = """ifneq (,$(findstring {sanitised_name}, $(ENABLE_KEMS)))
+UPSTREAMS+={sanitised_name}_upstream
 endif
 
 {SANITISED_NAME}_DIR={kem_dir}
@@ -94,7 +94,7 @@ TO_CLEAN+=$(OBJS_KEM_{SANITISED_NAME})
 
 MODULE_{SANITISED_NAME}=kem_{sanitised_name}
 
-{sanitised_name}_kem_upstream: $(OBJS_KEM_{SANITISED_NAME})
+{sanitised_name}_upstream: $(OBJS_KEM_{SANITISED_NAME})
 \tbash scripts/collect_objects.sh $(MODULE_{SANITISED_NAME}) $(OBJS_KEM_{SANITISED_NAME})
 \tbash scripts/symbols_global_rename.sh $(MODULE_{SANITISED_NAME}) src/kem/{basename}/symbols_global_rename_{sanitised_name}.txt
 \tbash scripts/symbols_local.sh $(MODULE_{SANITISED_NAME}) src/kem/{basename}/symbols_local.txt

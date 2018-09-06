@@ -369,8 +369,8 @@ def test_srcs_block():
     assert res == EXP_SRCS_BLOCK
 
 
-EXP_ALG_MAKEFILE_SEGMENT = """ifneq (,$(findstring titanium_cca_std_kem, $(ENABLE_KEMS)))
-UPSTREAMS+=titanium_cca_std_kem_upstream
+EXP_ALG_MAKEFILE_SEGMENT = """ifneq (,$(findstring titanium_cca_std, $(ENABLE_KEMS)))
+UPSTREAMS+=titanium_cca_std_upstream
 endif
 
 TITANIUM_CCA_STD_DIR=src/kem/titanium/upstream/Titanium_CCA_std
@@ -388,7 +388,7 @@ src/kem/titanium/upstream/Titanium_CCA_std/%.o: src/kem/titanium/upstream/Titani
 
 MODULE_TITANIUM_CCA_STD=kem_titanium_cca_std
 
-titanium_cca_std_kem_upstream: $(OBJS_KEM_TITANIUM_CCA_STD)
+titanium_cca_std_upstream: $(OBJS_KEM_TITANIUM_CCA_STD)
 \tbash scripts/collect_objects.sh $(MODULE_TITANIUM_CCA_STD) $(OBJS_KEM_TITANIUM_CCA_STD)
 \tbash scripts/symbols_global_rename.sh $(MODULE_TITANIUM_CCA_STD) src/kem/titanium/symbols_global_rename_titanium_cca_std.txt
 \tbash scripts/symbols_local.sh $(MODULE_TITANIUM_CCA_STD) src/kem/titanium/symbols_local.txt
@@ -407,12 +407,12 @@ def test_algorithm_makefile_segment():
 
 
 EXP_ALG_MAKEFILE_SEGMENT_HEADER = """ifeq (x64,$(ARCH))
-ENABLE_KEMS+=$(findstring titanium_cca_std_kem, $(KEMS_TO_ENABLE))
-ENABLE_KEMS+=$(findstring titanium_cca_hi_kem, $(KEMS_TO_ENABLE))
+ENABLE_KEMS+=$(findstring titanium_cca_std, $(KEMS_TO_ENABLE))
+ENABLE_KEMS+=$(findstring titanium_cca_hi, $(KEMS_TO_ENABLE))
 MAKE_FLAGS_KEM_TITANIUM=
 else ifeq (x86,$(ARCH))
-ENABLE_KEMS+=$(findstring titanium_cca_std_kem, $(KEMS_TO_ENABLE))
-ENABLE_KEMS+=$(findstring titanium_cca_hi_kem, $(KEMS_TO_ENABLE))
+ENABLE_KEMS+=$(findstring titanium_cca_std, $(KEMS_TO_ENABLE))
+ENABLE_KEMS+=$(findstring titanium_cca_hi, $(KEMS_TO_ENABLE))
 MAKE_FLAGS_KEM_TITANIUM=
 endif
 
@@ -459,7 +459,7 @@ KEMS_TO_ENABLE?=frodokem_640_aes frodokem_640_cshake frodokem_976_aes \\
 EXP_MAKEFILE = """THESE SHOULD BE THE ONLY OPTIONS TO BE CONFIGURED BY THE PERSON COMPILING
 
 KEMS_TO_ENABLE?=frodokem_640_aes frodokem_640_cshake frodokem_976_aes \\
-\t\t\t   titanium_cca_std_kem titanium_cca_hi_kem \\
+\t\t\t   titanium_cca_std titanium_cca_hi \\
 \t\t\t   newhope_512_cca_kem newhope_1024_cca_kem \\
 \t\t\t   kyber512 kyber768 kyber1024
 \t\t\t   # EDIT-WHEN-ADDING-KEM
