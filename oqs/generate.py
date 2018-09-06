@@ -210,7 +210,6 @@ def generate_oqs_wrapper(basename, data):
     content = open(kem_h_path).read()
     new_content = kem_header_add_new_algorithm(basename, content,
                                                data[ALG_VARS].values())
-
     if new_content:
         with open(kem_h_path, 'w') as f:
             f.write(new_content)
@@ -240,11 +239,22 @@ def generate_oqs_wrapper(basename, data):
     with open(path, 'w') as f:
         f.write(local_rename)
 
-    # TODO: create Makefile / modify existing project ones
+    # create algorithm makefile
     path = 'src/kem/{}/Makefile'.format(basename)
 
     with open(path, 'w') as f:
         f.write(generate_algorithm_makefile(data))
+
+    # include new algorithm Makefile in src/kem/Makefile
+    kem_makefile_path = 'src/kem/Makefile'
+    content = open(kem_makefile_path).read()
+
+    new_content = kem_makefile_add_header(content, basename)
+    with open(kem_makefile_path, 'w') as f:
+        f.write(new_content)
+
+    # TODO: update Makefile
+    # update root makefile
 
 
 if __name__ == '__main__':
