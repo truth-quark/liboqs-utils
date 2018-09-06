@@ -5,7 +5,7 @@ CRYPTO_BYTES = 'CRYPTO_BYTES'
 CRYPTO_CIPHERTEXTBYTES = 'CRYPTO_CIPHERTEXTBYTES'
 CRYPTO_ALGNAME = 'CRYPTO_ALGNAME'
 
-SAFE_NAME = 'sanitised_name'
+SAFE_NAME = 'sanitised_name'  # TODO sanitised --> safe
 ALG_VARS = 'alg_variants'
 
 

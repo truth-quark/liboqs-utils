@@ -175,7 +175,7 @@ def algorithm_makefile_header_segment(params):
     tmp['enable_kems_x64'] = enable_kems(alg_names)
     tmp['enable_kems_x86'] = enable_kems(alg_names)
 
-    return template.EXP_ALG_MAKEFILE_SEGMENT_HEADER.format_map(tmp)
+    return template.ALG_MAKEFILE_SEGMENT_HEADER.format_map(tmp)
 
 
 def generate_algorithm_makefile(params):

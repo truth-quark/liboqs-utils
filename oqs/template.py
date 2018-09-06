@@ -100,7 +100,7 @@ MODULE_{SANITISED_NAME}=kem_{sanitised_name}
 \tbash scripts/symbols_local.sh $(MODULE_{SANITISED_NAME}) src/kem/{basename}/symbols_local.txt
 """
 
-EXP_ALG_MAKEFILE_SEGMENT_HEADER = """ifeq (x64,$(ARCH))
+ALG_MAKEFILE_SEGMENT_HEADER = """ifeq (x64,$(ARCH))
 {enable_kems_x64}
 MAKE_FLAGS_KEM_{BASENAME}=
 else ifeq (x86,$(ARCH))
