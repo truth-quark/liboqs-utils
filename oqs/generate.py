@@ -187,6 +187,30 @@ def generate_algorithm_makefile(params):
     return '\n'.join(segs)
 
 
+def enable_algorithms_root_makefile(content, params):
+    # TODO: cleanup quick and dirty implementation?
+    alg_names = [params[ALG_VARS][kd]['sanitised_name'] for kd in params[ALG_VARS]]
+    enabled_names = ['{}_kem'.format(n) for n in alg_names]
+    exists = [n in content for n in enabled_names]
+
+    if all(exists):
+        return content
+
+    if True in exists and False in exists:
+        msg = 'Some algorithms already enabled, but not others'
+        raise oqs.KemException(msg)
+
+    lines = content.split('\n')
+
+    for i, line in enumerate(lines):
+        if line.startswith('KEMS_TO_ENABLE?='):
+            break
+
+    new_line = '{}\n\t\t\t   {} \\'.format(line, ' '.join(enabled_names))
+    lines[i] = new_line
+    return '\n'.join(lines)
+
+
 # TODO: cleanup hard coded paths
 def generate_oqs_wrapper(basename, data):
     """Generate liboqs wrapper files."""
@@ -253,8 +277,15 @@ def generate_oqs_wrapper(basename, data):
     with open(kem_makefile_path, 'w') as f:
         f.write(new_content)
 
-    # TODO: update Makefile
     # update root makefile
+    makefile_path = 'Makefile'
+    content = open(makefile_path).read()
+
+    new_content = enable_algorithms_root_makefile(content, data)
+
+    if new_content != content:
+        with open(makefile_path, 'w') as f:
+            f.write(new_content)
 
 
 if __name__ == '__main__':

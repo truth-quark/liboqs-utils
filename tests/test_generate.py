@@ -436,7 +436,6 @@ def test_algorithm_makefile_header_segment():
                           {'SANITISED_NAME': 'TITANIUM_CCA_STD',
                            'sanitised_name': 'titanium_cca_std',
                            },
-
                          'src/kem/emblem/upstream/Titanium_CCA_hi':
                              {'SANITISED_NAME': 'TITANIUM_CCA_HI',
                               'sanitised_name': 'titanium_cca_hi',
@@ -446,3 +445,34 @@ def test_algorithm_makefile_header_segment():
 
     res = generate.algorithm_makefile_header_segment(params)
     assert res == EXP_ALG_MAKEFILE_SEGMENT_HEADER
+
+
+ORIG_MAKEFILE = """THESE SHOULD BE THE ONLY OPTIONS TO BE CONFIGURED BY THE PERSON COMPILING
+
+KEMS_TO_ENABLE?=frodokem_640_aes frodokem_640_cshake frodokem_976_aes \\
+\t\t\t   newhope_512_cca_kem newhope_1024_cca_kem \\
+\t\t\t   kyber512 kyber768 kyber1024
+\t\t\t   # EDIT-WHEN-ADDING-KEM
+"""
+
+
+EXP_MAKEFILE = """THESE SHOULD BE THE ONLY OPTIONS TO BE CONFIGURED BY THE PERSON COMPILING
+
+KEMS_TO_ENABLE?=frodokem_640_aes frodokem_640_cshake frodokem_976_aes \\
+\t\t\t   titanium_cca_std_kem titanium_cca_hi_kem \\
+\t\t\t   newhope_512_cca_kem newhope_1024_cca_kem \\
+\t\t\t   kyber512 kyber768 kyber1024
+\t\t\t   # EDIT-WHEN-ADDING-KEM
+"""
+
+
+def test_enable_algorithms_root_makefile():
+    params = {'basename': 'titanium',
+              ALG_VARS: {'src/kem/titanium/upstream/Titanium_CCA_std':
+                             {'sanitised_name': 'titanium_cca_std'},
+                         'src/kem/emblem/upstream/Titanium_CCA_hi':
+                             {'sanitised_name': 'titanium_cca_hi'},
+                         }
+              }
+    res = generate.enable_algorithms_root_makefile(ORIG_MAKEFILE, params)
+    assert res == EXP_MAKEFILE
