@@ -127,7 +127,11 @@ def find_src_files(kem_dir):
     for dirpath, _, filenames in os.walk(kem_dir):
         for fn in filenames:
             if fn.endswith('.c'):
-                yield os.path.join(dirpath, fn)
+                if dirpath != kem_dir:
+                    msg = 'Relative sub dirs not handled yet'
+                    raise NotImplementedError(msg)
+
+                yield fn
 
 
 def filter_src_files(srcs, ignored=('rng.c', 'PQCgenKAT_kem.c')):
