@@ -119,7 +119,10 @@ def get_all_symbols(kem_dirs):
             for symbol in filter_symbols(get_symbols(obj_path)):
                 symbols.add(symbol)
 
-    return symbols
+    if symbols:
+        return symbols
+
+    raise oqs.KemException('No symbols found')
 
 
 # TODO: generalise with find_object_files
