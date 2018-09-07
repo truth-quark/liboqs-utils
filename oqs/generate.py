@@ -1,5 +1,8 @@
 import os
+import io
 import sys
+
+import pytablewriter
 
 import oqs
 from oqs import template, scanner, SAFE_NAME, ALG_VARS
@@ -11,14 +14,10 @@ OQS_DEF_ALG = '#define OQS_KEM_alg_'
 OQS_DEF_ALG_LEN = '#define OQS_KEM_algs_length'
 
 
-# TODO: modify src/kem/Makefile
-# TODO: generate algorithm makefile? where to get names for ENABLE_<> from???
-# TODO: modify project Makefile / enable new algorithms
-
+# TODO: generate algorithm makefile?
 # TODO: remove rng.c
 # TODO: try to remove rng.h?
 # TODO: KAT extraction
-# TODO: Stub out algorithm data sheet
 
 
 def kem_header_segment(params):
@@ -210,6 +209,45 @@ def enable_algorithms_root_makefile(content, params):
     return '\n'.join(lines)
 
 
+def algorithm_data_sheet_title(basename):
+    raw = 'liboqs nist-branch algorithm datasheet: `kem_{}`'.format(basename)
+    return raw + '\n{}'.format('=' * len(raw))
+
+
+def algorithm_data_sheet(params):
+    title = algorithm_data_sheet_title(params['basename'])
+    tmp = {'title': title}
+    tmp.update(params)
+
+    data = []
+    for kd in params[ALG_VARS].keys():
+        alg = params[ALG_VARS][kd]
+        row = [alg['CRYPTO_ALGNAME'], 'TODO', alg['nist-level'],
+               alg['CRYPTO_PUBLICKEYBYTES'], alg['CRYPTO_SECRETKEYBYTES'],
+               alg['CRYPTO_CIPHERTEXTBYTES'], alg['CRYPTO_BYTES']]
+
+        data.append(row)
+
+    tw = pytablewriter.MarkdownTableWriter()
+    tw.header_list = ['Parameter set', 'Security model',
+                      'Claimed NIST security level', 'Public key size (bytes)',
+                      'Secret key size (bytes)', 'Ciphertext size (bytes)',
+                      'Shared secret size (bytes)']
+    tw.value_matrix = data
+    tw.margin = 1
+    tw.stream = io.StringIO()
+    tw.write_table()
+    raw_table = tw.stream.getvalue()
+
+    # ugly: fix justification
+    lines = raw_table.split('\n')
+    lines[1] = lines[1].replace('|-', '|:')
+    lines[1] = lines[1].replace('-|', ':|')
+
+    tmp['table'] = '\n'.join(lines).strip()  # NB: clears extra newlines
+    return template.ALGORITHM_DATA_SHEET.format_map(tmp)
+
+
 # TODO: cleanup hard coded paths
 def generate_oqs_wrapper(basename, data):
     """Generate liboqs wrapper files."""
@@ -285,6 +323,13 @@ def generate_oqs_wrapper(basename, data):
     if new_content != content:
         with open(makefile_path, 'w') as f:
             f.write(new_content)
+
+    # generate algorithm data sheet
+    data_sheet_path = 'docs/algorithms/kem_{}.md'.format(basename)
+
+    data_sheet = algorithm_data_sheet(data)
+    with open(data_sheet_path, 'w') as f:
+        f.write(data_sheet)
 
 
 if __name__ == '__main__':

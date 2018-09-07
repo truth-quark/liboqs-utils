@@ -119,3 +119,35 @@ OBJECTS_KEM+=$(OBJECTS_KEM_{BASENAME})
 .objs/kem/{basename}/kem_{basename}.o: headers src/kem/{basename}/kem_{basename}.c
 \t$(CC) -c src/kem/{basename}/kem_{basename}.c -o .objs/kem/{basename}/kem_{basename}.o $(CFLAGS)
 """
+
+
+ALGORITHM_DATA_SHEET = """{title}
+
+Summary
+-------
+
+- **Name:** {basename}
+- **Algorithm type:**
+- **Main cryptographic assumption:**
+- **NIST submission URL:** https://csrc.nist.gov/CSRC/media/Projects/Post-Quantum-Cryptography/documents/round-1/submissions
+- **Submitters (to NIST competition):**
+- **Submitters' website:**
+- **Added to liboqs by:**
+
+Parameter sets
+--------------
+
+{table}
+
+Implementation
+--------------
+
+- **Source of implementation:**
+- **License:**
+- **Language:** C
+- **Constant-time:** Unknown
+- **Architectures supported in liboqs nist-branch:**
+
+Additional comments
+-------------------
+"""

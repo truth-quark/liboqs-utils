@@ -1,3 +1,4 @@
+import oqs
 from oqs import generate, ALG_VARS
 
 FAKE1 = 'Fake Alg 1'
@@ -476,3 +477,66 @@ def test_enable_algorithms_root_makefile():
               }
     res = generate.enable_algorithms_root_makefile(ORIG_MAKEFILE, params)
     assert res == EXP_MAKEFILE
+
+
+EXP_BASE_DATA_SHEET = """liboqs nist-branch algorithm datasheet: `kem_emblem`
+====================================================
+
+Summary
+-------
+
+- **Name:** emblem
+- **Algorithm type:**
+- **Main cryptographic assumption:**
+- **NIST submission URL:** https://csrc.nist.gov/CSRC/media/Projects/Post-Quantum-Cryptography/documents/round-1/submissions
+- **Submitters (to NIST competition):**
+- **Submitters' website:**
+- **Added to liboqs by:**
+
+Parameter sets
+--------------
+
+| Parameter set | Security model | Claimed NIST security level | Public key size (bytes) | Secret key size (bytes) | Ciphertext size (bytes) | Shared secret size (bytes) |
+|:-------------:|:--------------:|:---------------------------:|:-----------------------:|:-----------------------:|:-----------------------:|:--------------------------:|
+| EMBLEM        | TODO           |                           5 |                   26912 |                   26944 |                       8 |                         32 |
+| R_EMBLEM      | TODO           |                           3 |                   20512 |                   20544 |                       6 |                         16 |
+
+Implementation
+--------------
+
+- **Source of implementation:**
+- **License:**
+- **Language:** C
+- **Constant-time:** Unknown
+- **Architectures supported in liboqs nist-branch:**
+
+Additional comments
+-------------------
+"""
+
+
+def test_algorithm_data_sheet():
+    params = {'basename': 'emblem',
+              ALG_VARS: {'src/kem/emblem/upstream/EMBLEM':
+                          {oqs.CRYPTO_ALGNAME: 'EMBLEM',
+                           oqs.CRYPTO_PUBLICKEYBYTES: 26912,
+                           oqs.CRYPTO_SECRETKEYBYTES: 26944,
+                           oqs.CRYPTO_CIPHERTEXTBYTES: 8,
+                           oqs.CRYPTO_BYTES: 32,
+                           'sanitised_name': 'emblem',
+                           'nist-level': 5,
+                           },
+                         'src/kem/emblem/upstream/R_EMBLEM':
+                          {oqs.CRYPTO_ALGNAME: 'R_EMBLEM',
+                           oqs.CRYPTO_PUBLICKEYBYTES: 20512,
+                           oqs.CRYPTO_SECRETKEYBYTES: 20544,
+                           oqs.CRYPTO_CIPHERTEXTBYTES: 6,
+                           oqs.CRYPTO_BYTES: 16,
+                           'sanitised_name': 'r_emblem',
+                           'nist-level': 3,
+                           },
+                         }
+              }
+
+    res = generate.algorithm_data_sheet(params)
+    assert res == EXP_BASE_DATA_SHEET
