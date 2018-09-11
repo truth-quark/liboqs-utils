@@ -166,7 +166,7 @@ def scan(basename):
             safe = sanitise_name(alg_name)
             alg[kd][oqs.SAFE_NAME] = safe
             alg[kd]['SANITISED_NAME'] = safe.upper()
-            alg[kd]['nist-level'] = 'TODO'
+            alg[kd]['nist-level'] = '-1'
             alg[kd]['ind-cca'] = 'TODO'
             alg[kd]['src_files'] = list(filter_src_files(find_src_files(kd)))
 
