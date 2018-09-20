@@ -14,10 +14,10 @@ OQS_DEF_ALG = '#define OQS_KEM_alg_'
 OQS_DEF_ALG_LEN = '#define OQS_KEM_algs_length'
 
 
-# TODO: generate algorithm makefile?
+# TODO: expand for sig algorithms
+# TODO: warn about overwrite
 # TODO: remove rng.c
 # TODO: try to remove rng.h?
-# TODO: KAT extraction
 
 
 def kem_header_segment(params):
@@ -76,7 +76,7 @@ def kem_src_file(basename, params):
     Return KEM src file content for given algorithms.
     :param basename:
     :param params: list of data dicts for each algorithm variant
-    :return:
+    :return string containing C source code
     """
     mapping = dict(basename=basename,
                    segments='\n'.join(kem_src_segment(p) for p in params))
@@ -248,7 +248,7 @@ def algorithm_data_sheet(params):
     return template.ALGORITHM_DATA_SHEET.format_map(tmp)
 
 
-# TODO: cleanup hard coded paths
+# TODO: cleanup hard coded paths (in conjunction with sig implementation)
 def generate_oqs_wrapper(basename, data):
     """Generate liboqs wrapper files."""
     # NB: assumes upstream dir already exists
@@ -333,7 +333,7 @@ def generate_oqs_wrapper(basename, data):
 
 
 if __name__ == '__main__':
-    assert os.path.exists('.git')  # quick and dirty check for root dir
+    assert os.path.exists('.git')  # rough check being run in project root
 
     base_name = sys.argv[1]
     scandata = scanner.scan(base_name)
