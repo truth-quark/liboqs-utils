@@ -100,7 +100,7 @@ def filter_symbols(nm_output):
     :return: yields raw symbol names
     """
     lines = nm_output.split('\n')
-    subset = [e for e in lines if (' T ' in e or ' D ' in e)]  # TODO: regex?
+    subset = [e for e in lines if (' T ' in e or ' D ' in e)]
 
     for s in subset:
         _, _, symbol = s.split()
@@ -125,16 +125,19 @@ def get_all_symbols(kem_dirs):
     raise oqs.KemException('No symbols found')
 
 
-# TODO: generalise with find_object_files
 def find_src_files(kem_dir):
+    """
+    Finds and yield C source files relative to given KEM dir
+    :param kem_dir: path to the upstream KEM dir to search for C sources
+    """
     for dirpath, _, filenames in os.walk(kem_dir):
         for fn in filenames:
             if fn.endswith('.c'):
                 if dirpath != kem_dir:
-                    msg = 'Relative sub dirs not handled yet'
-                    raise NotImplementedError(msg)
-
-                yield fn
+                    ndir = dirpath[len(kem_dir) + 1:]
+                    yield os.path.join(ndir, fn)
+                else:
+                    yield fn
 
 
 def filter_src_files(srcs, ignored=('rng.c', 'PQCgenKAT_kem.c')):

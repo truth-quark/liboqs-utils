@@ -88,6 +88,12 @@ class TestFinders:
 
         assert list(scanner.find_src_files('.')) == ['file.c']
 
+    def test_find_src_files_subdirs(self, walk):
+        walk.return_value = [['foo', [], ['a', 'file.c']],
+                             ['foo/dirB', [], ['file2.c']]]
+
+        assert list(scanner.find_src_files('foo')) == ['file.c', 'dirB/file2.c']
+
 
 def test_filter_symbols():
     content = '0000000000000000 T _BINT_to_OS\n' \
